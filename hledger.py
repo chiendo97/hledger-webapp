@@ -197,12 +197,20 @@ async def register(file: str, account: str, begin: str = "", end: str = "") -> l
     return rows
 
 
+def _normalize_amount(amount: str) -> str:
+    """Ensure VND amounts have trailing dot (e.g. '139,400. vnd') for hledger."""
+    if amount.endswith(" vnd") and not amount.endswith(". vnd"):
+        amount = amount.replace(" vnd", ". vnd")
+    return amount
+
+
 async def add_transaction(file: str, date: str, description: str, postings: list[dict[str, str]]) -> None:
     lines = [f"\n{date} {description}"]
     for p in postings:
         account = p["account"]
         amount = p.get("amount", "")
         if amount:
+            amount = _normalize_amount(amount)
             lines.append(f"    {account}    {amount}")
         else:
             lines.append(f"    {account}")
@@ -240,6 +248,7 @@ async def update_transaction(
         account = p["account"]
         amount = p.get("amount", "")
         if amount:
+            amount = _normalize_amount(amount)
             lines.append(f"    {account}    {amount}")
         else:
             lines.append(f"    {account}")
