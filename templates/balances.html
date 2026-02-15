@@ -4,8 +4,8 @@
 {% block header %}Balances{% endblock %}
 
 {% block content %}
-{% include "partials/month_picker.html" %}
 {% include "partials/depth_selector.html" %}
+{% include "partials/sort_toggle.html" %}
 <form hx-get="/balances" hx-target="main" hx-swap="innerHTML" hx-select="main > *"
       class="mb-4">
   <input type="hidden" name="depth" value="{{ depth }}">

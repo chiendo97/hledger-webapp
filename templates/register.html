@@ -4,7 +4,6 @@
 {% block header %}Register{% endblock %}
 
 {% block content %}
-{% include "partials/month_picker.html" %}
 <form method="get" class="mb-4">
   <input type="hidden" name="month" value="{{ month }}">
   <select name="account" onchange="this.form.submit()"
