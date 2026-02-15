@@ -168,14 +168,15 @@ async def balancesheet(depth: int = 2, month: str = "", sort: str = "") -> Templ
 
 
 @get("/register")
-async def register_view(account: str = "") -> Template:
+async def register_view(account: str = "", month: str = "") -> Template:
+    mr = _month_range(month)
     accts = await hledger.accounts(JOURNAL_FILE)
     rows: list = []
     if account:
-        rows = await hledger.register(JOURNAL_FILE, account)
+        rows = await hledger.register(JOURNAL_FILE, account, begin=mr["begin"], end=mr["end"])
     return Template(
         "register.html",
-        context={"rows": rows, "account": account, "accounts": accts},
+        context={"rows": rows, "account": account, "accounts": accts, **mr},
     )
 
 

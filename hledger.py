@@ -147,8 +147,12 @@ async def balance_sheet(file: str, depth: int = 0, begin: str = "", end: str = "
     return _parse_compound_report(raw)
 
 
-async def register(file: str, account: str) -> list[dict[str, Any]]:
+async def register(file: str, account: str, begin: str = "", end: str = "") -> list[dict[str, Any]]:
     args = ["hledger", "-f", file, "reg", account, "-O", "json"]
+    if begin:
+        args += ["-b", begin]
+    if end:
+        args += ["-e", end]
     raw = json.loads(await _run(args))
     rows: list[dict[str, Any]] = []
     for entry in raw:

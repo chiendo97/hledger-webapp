@@ -12,7 +12,7 @@
   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ sub.title }}</h2>
   <div class="space-y-1">
     {% for row in sub.rows %}
-    <a href="/register?account={{ row.name }}" class="block bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 hover:border-gray-600" style="padding-left: {{ row.depth * 12 + 12 }}px">
+    <a href="/register?account={{ row.name }}{% if month %}&month={{ month }}{% endif %}" class="block bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 hover:border-gray-600" style="padding-left: {{ row.depth * 12 + 12 }}px">
       <div class="text-xs text-gray-400 truncate">{{ row.name }}</div>
       {% if row.amount_items|length > 1 %}
       <div class="text-right">
