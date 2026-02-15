@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set active = "bs" %}
+{% block title %}Balance Sheet{% endblock %}
+{% block header %}Balance Sheet{% endblock %}
+
+{% block content %}
+{% include "partials/depth_selector.html" %}
+{% for sub in report.subreports %}
+<div class="mb-6">
+  <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ sub.title }}</h2>
+  <div class="space-y-1">
+    {% for row in sub.rows %}
+    <a href="/register?account={{ row.name }}" class="block bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 hover:border-gray-600" style="padding-left: {{ row.depth * 12 + 12 }}px">
+      <div class="text-xs text-gray-400 truncate">{{ row.name }}</div>
+      {% if row.amount_items|length > 1 %}
+      <div class="text-right">
+        {% for item in row.amount_items %}
+        <div class="font-mono text-sm text-gray-200">{{ item }}</div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="font-mono text-sm text-gray-200 text-right">{{ row.amounts }}</div>
+      {% endif %}
+    </a>
+    {% endfor %}
+    {% if sub.total_items %}
+    <div class="bg-gray-800 rounded-lg px-3 py-2 font-semibold">
+      <div class="text-sm text-gray-300 mb-1">Total</div>
+      <div class="text-right">
+        {% for item in sub.total_items %}
+        <div class="font-mono text-sm text-gray-100">{{ item }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="flex justify-between items-baseline bg-gray-800 rounded-lg px-3 py-2 font-semibold">
+      <span class="text-sm text-gray-300">Total</span>
+      <span class="font-mono text-sm text-gray-100">{{ sub.total }}</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% if report.grand_total_items %}
+<div class="bg-blue-900/30 border border-blue-800 rounded-lg p-3">
+  <div class="text-sm text-gray-400 uppercase tracking-wider mb-2 text-center">Net Worth</div>
+  {% for item in report.grand_total_items %}
+  <div class="flex justify-between px-2 py-1">
+    <span class="text-gray-400 text-sm">{{ item.split(' ')[-1] }}</span>
+    <span class="font-mono font-semibold text-gray-100">{{ item }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

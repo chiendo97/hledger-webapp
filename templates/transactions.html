@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% set active = "tx" %}
+{% block title %}Transactions{% endblock %}
+{% block header %}Transactions{% endblock %}
+
+{% block content %}
+<!-- Search / Filter -->
+<form hx-get="/transactions/partial" hx-target="#tx-list" hx-trigger="submit" hx-swap="innerHTML"
+      class="flex flex-col gap-2 mb-4">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
+         class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+  <div class="flex gap-2">
+    <input type="date" name="begin" value="{{ begin }}"
+           class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+    <input type="date" name="end" value="{{ end }}"
+           class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 text-sm font-medium">Go</button>
+  </div>
+</form>
+
+<!-- Add button -->
+<div class="mb-4">
+  <button hx-get="/transactions/new" hx-target="#tx-form-container" hx-swap="innerHTML"
+          class="w-full bg-green-700 hover:bg-green-600 rounded-lg px-4 py-2 text-sm font-medium">+ Add Transaction</button>
+</div>
+<div id="tx-form-container"></div>
+
+<!-- Transaction list -->
+<div id="tx-list">
+  {% include "partials/tx_list.html" %}
+</div>
+{% endblock %}

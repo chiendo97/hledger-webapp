@@ -1,0 +1,7 @@
+<div class="flex gap-1 items-center text-xs mb-3">
+  <span class="text-gray-500 mr-1">Depth:</span>
+  {% for d in [1, 2, 3] %}
+  <a href="?depth={{ d }}{% if q is defined and q %}&q={{ q }}{% endif %}"
+     class="px-3 py-1 rounded-full {% if depth == d %}bg-blue-600 text-white{% else %}bg-gray-800 text-gray-400 hover:bg-gray-700{% endif %}">{{ d }}</a>
+  {% endfor %}
+</div>

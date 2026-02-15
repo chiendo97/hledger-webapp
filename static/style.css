@@ -1,0 +1,3 @@
+/* Minimal overrides — Tailwind handles most styling */
+html { -webkit-tap-highlight-color: transparent; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }

@@ -1,0 +1,26 @@
+<form method="post" action="/transactions/new" class="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-4 space-y-3">
+  <div class="flex gap-2">
+    <input type="date" name="date" required
+           class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm">
+    <input type="text" name="description" placeholder="Description" required
+           class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm">
+  </div>
+  <div class="space-y-2" id="postings">
+    <div class="flex gap-2">
+      <input type="text" name="account_0" placeholder="Account" list="acct-list" required
+             class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm">
+      <input type="text" name="amount_0" placeholder="Amount (e.g. 100 vnd)"
+             class="w-36 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm">
+    </div>
+    <div class="flex gap-2">
+      <input type="text" name="account_1" placeholder="Account" list="acct-list" required
+             class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm">
+      <input type="text" name="amount_1" placeholder="Amount (optional)"
+             class="w-36 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm">
+    </div>
+  </div>
+  <datalist id="acct-list">
+    {% for a in accounts %}<option value="{{ a }}">{% endfor %}
+  </datalist>
+  <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 text-sm font-medium">Save</button>
+</form>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}hledger{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class'}</script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen pb-20">
+  <!-- Top bar -->
+  <header class="sticky top-0 z-40 bg-gray-900 border-b border-gray-800 px-4 py-3">
+    <h1 class="text-lg font-semibold text-center">{% block header %}hledger{% endblock %}</h1>
+  </header>
+
+  <!-- Content -->
+  <main class="max-w-2xl mx-auto px-4 py-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs">
+    <a href="/transactions" class="flex flex-col items-center gap-1 {% if active == 'tx' %}text-blue-400{% else %}text-gray-400{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <span>Txns</span>
+    </a>
+    <a href="/balances" class="flex flex-col items-center gap-1 {% if active == 'bal' %}text-blue-400{% else %}text-gray-400{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <span>Bal</span>
+    </a>
+    <a href="/incomestatement" class="flex flex-col items-center gap-1 {% if active == 'is' %}text-blue-400{% else %}text-gray-400{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <span>Income</span>
+    </a>
+    <a href="/balancesheet" class="flex flex-col items-center gap-1 {% if active == 'bs' %}text-blue-400{% else %}text-gray-400{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-1m6-9a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2V9a2 2 0 012-2"/></svg>
+      <span>BS</span>
+    </a>
+    <a href="/register" class="flex flex-col items-center gap-1 {% if active == 'reg' %}text-blue-400{% else %}text-gray-400{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      <span>Register</span>
+    </a>
+  </nav>
+  <div id="modal"></div>
+</body>
+</html>
