@@ -4,7 +4,9 @@
 {% block header %}Income Statement{% endblock %}
 
 {% block content %}
+{% include "partials/month_picker.html" %}
 {% include "partials/depth_selector.html" %}
+{% include "partials/sort_toggle.html" %}
 {% for sub in report.subreports %}
 <div class="mb-6">
   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ sub.title }}</h2>
@@ -12,7 +14,7 @@
     {% for row in sub.rows %}
     <a href="/register?account={{ row.name }}" class="flex justify-between items-baseline bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 hover:border-gray-600" style="padding-left: {{ row.depth * 12 + 12 }}px">
       <span class="text-xs text-gray-400 truncate mr-2 min-w-0">{{ row.name }}</span>
-      <span class="font-mono text-sm text-gray-200 whitespace-nowrap shrink-0">{{ row.amounts }}</span>
+      <span class="font-mono text-sm whitespace-nowrap shrink-0 {% if row.amounts.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ row.amounts }}</span>
     </a>
     {% endfor %}
     <div class="flex justify-between items-baseline bg-gray-800 rounded-lg px-3 py-2 font-semibold">

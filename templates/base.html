@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>{% block title %}hledger{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={darkMode:'class'}</script>
@@ -16,12 +16,12 @@
   </header>
 
   <!-- Content -->
-  <main class="max-w-2xl mx-auto px-4 py-4">
+  <main class="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 py-4">
     {% block content %}{% endblock %}
   </main>
 
   <!-- Bottom nav -->
-  <nav class="fixed bottom-0 inset-x-0 z-40 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs">
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-gray-900 border-t border-gray-800 flex justify-around py-2 text-xs sm:py-3 sm:text-sm sm:justify-center sm:gap-8">
     <a href="/transactions" class="flex flex-col items-center gap-1 {% if active == 'tx' %}text-blue-400{% else %}text-gray-400{% endif %}">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span>Txns</span>

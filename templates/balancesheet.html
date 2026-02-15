@@ -4,7 +4,9 @@
 {% block header %}Balance Sheet{% endblock %}
 
 {% block content %}
+{% include "partials/month_picker.html" %}
 {% include "partials/depth_selector.html" %}
+{% include "partials/sort_toggle.html" %}
 {% for sub in report.subreports %}
 <div class="mb-6">
   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ sub.title }}</h2>
@@ -15,11 +17,11 @@
       {% if row.amount_items|length > 1 %}
       <div class="text-right">
         {% for item in row.amount_items %}
-        <div class="font-mono text-sm text-gray-200">{{ item }}</div>
+        <div class="font-mono text-sm {% if item.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ item }}</div>
         {% endfor %}
       </div>
       {% else %}
-      <div class="font-mono text-sm text-gray-200 text-right">{{ row.amounts }}</div>
+      <div class="font-mono text-sm text-right {% if row.amounts.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ row.amounts }}</div>
       {% endif %}
     </a>
     {% endfor %}

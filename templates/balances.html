@@ -4,6 +4,7 @@
 {% block header %}Balances{% endblock %}
 
 {% block content %}
+{% include "partials/month_picker.html" %}
 {% include "partials/depth_selector.html" %}
 <form hx-get="/balances" hx-target="main" hx-swap="innerHTML" hx-select="main > *"
       class="mb-4">
@@ -14,11 +15,11 @@
          hx-include="[name=depth]">
 </form>
 
-<div class="space-y-1">
+<div class="space-y-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0 lg:grid-cols-3">
   {% for row in rows %}
   <a href="/register?account={{ row.name }}" class="block bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 hover:border-gray-600">
     <div class="text-xs text-gray-400 truncate" style="padding-left: {{ row.depth * 12 }}px">{{ row.name }}</div>
-    <div class="text-sm font-mono text-gray-200 text-right">{{ row.amounts }}</div>
+    <div class="text-sm font-mono text-right {% if row.amounts.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ row.amounts }}</div>
   </a>
   {% else %}
   <p class="text-gray-500 text-center py-8">No data.</p>

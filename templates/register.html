@@ -18,13 +18,13 @@
 <div class="space-y-2">
   {% for r in rows %}
   <div class="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
-    <div class="flex justify-between items-center mb-1">
-      <span class="text-xs text-gray-500">{{ r.date }}</span>
-      <span class="font-mono text-xs text-blue-400">{{ r.running }}</span>
-    </div>
-    <div class="flex justify-between items-baseline">
-      <span class="text-sm text-gray-300 truncate mr-2">{{ r.description }}</span>
-      <span class="font-mono text-sm text-gray-200 whitespace-nowrap shrink-0">{{ r.amount }}</span>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+      <span class="text-xs text-gray-500 sm:w-24 shrink-0">{{ r.date }}</span>
+      <span class="text-sm text-gray-300 truncate sm:flex-1">{{ r.description }}</span>
+      <div class="flex justify-between sm:gap-6 sm:shrink-0 mt-1 sm:mt-0">
+        <span class="font-mono text-sm whitespace-nowrap {% if r.amount.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ r.amount }}</span>
+        <span class="font-mono text-xs whitespace-nowrap {% if r.running.startswith('-') %}text-red-400{% else %}text-blue-400{% endif %}">{{ r.running }}</span>
+      </div>
     </div>
   </div>
   {% endfor %}

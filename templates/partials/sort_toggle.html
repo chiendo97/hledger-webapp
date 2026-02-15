@@ -1,0 +1,7 @@
+<div class="flex gap-1 items-center text-xs mb-3">
+  <span class="text-gray-500 mr-1">Sort:</span>
+  <a href="?depth={{ depth }}{% if month %}&month={{ month }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}"
+     class="px-3 py-1 rounded-full {% if not sort %}bg-blue-600 text-white{% else %}bg-gray-800 text-gray-400 hover:bg-gray-700{% endif %}">Name</a>
+  <a href="?sort=amount&depth={{ depth }}{% if month %}&month={{ month }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}"
+     class="px-3 py-1 rounded-full {% if sort == 'amount' %}bg-blue-600 text-white{% else %}bg-gray-800 text-gray-400 hover:bg-gray-700{% endif %}">Amount</a>
+</div>

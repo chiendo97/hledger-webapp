@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import calendar
 import os
+from datetime import date as dt_date
 from pathlib import Path
 from typing import Annotated
 
@@ -23,6 +25,26 @@ TEMPLATES_DIR = str(Path(__file__).resolve().parent / "templates")
 STATIC_DIR = str(Path(__file__).resolve().parent / "static")
 
 
+def _month_range(month: str) -> dict[str, str]:
+    """Given a 'YYYY-MM' string (or empty for current month), return month context dict."""
+    if not month:
+        today = dt_date.today()
+        month = today.strftime("%Y-%m")
+    year, mon = int(month[:4]), int(month[5:7])
+    begin = f"{year}-{mon:02d}-01"
+    if mon == 12:
+        end = f"{year + 1}-01-01"
+        next_month = f"{year + 1}-01"
+    else:
+        end = f"{year}-{mon + 1:02d}-01"
+        next_month = f"{year}-{mon + 1:02d}"
+    if mon == 1:
+        prev_month = f"{year - 1}-12"
+    else:
+        prev_month = f"{year}-{mon - 1:02d}"
+    return {"month": month, "begin": begin, "end": end, "prev_month": prev_month, "next_month": next_month}
+
+
 # ── Routes ──────────────────────────────────────────────────────────────
 
 
@@ -34,25 +56,24 @@ async def index() -> Redirect:
 @get("/transactions")
 async def transactions(
     q: str = "",
-    begin: str = "",
-    end: str = "",
+    month: str = "",
 ) -> Template:
-    txs = await hledger.print_json(JOURNAL_FILE, query=q, begin=begin, end=end)
+    mr = _month_range(month)
+    txs = await hledger.print_json(JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"])
     txs.reverse()  # newest first
-    is_htmx = False  # handled via header in middleware if needed
     return Template(
         "transactions.html",
-        context={"txs": txs, "q": q, "begin": begin, "end": end},
+        context={"txs": txs, "q": q, **mr},
     )
 
 
 @get("/transactions/partial")
 async def transactions_partial(
     q: str = "",
-    begin: str = "",
-    end: str = "",
+    month: str = "",
 ) -> Template:
-    txs = await hledger.print_json(JOURNAL_FILE, query=q, begin=begin, end=end)
+    mr = _month_range(month)
+    txs = await hledger.print_json(JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"])
     txs.reverse()
     return Template(
         "partials/tx_list.html",
@@ -120,21 +141,30 @@ async def update_transaction(index: int, data: dict[str, str]) -> Template:
 
 
 @get("/balances")
-async def balances(q: str = "", depth: int = 2) -> Template:
-    rows = await hledger.balances(JOURNAL_FILE, query=q, depth=depth)
-    return Template("balances.html", context={"rows": rows, "q": q, "depth": depth})
+async def balances(q: str = "", depth: int = 2, month: str = "") -> Template:
+    mr = _month_range(month)
+    rows = await hledger.balances(JOURNAL_FILE, query=q, depth=depth, begin=mr["begin"], end=mr["end"])
+    return Template("balances.html", context={"rows": rows, "q": q, "depth": depth, **mr})
 
 
 @get("/incomestatement")
-async def incomestatement(depth: int = 2) -> Template:
-    report = await hledger.income_statement(JOURNAL_FILE, depth=depth)
-    return Template("income.html", context={"report": report, "depth": depth})
+async def incomestatement(depth: int = 2, month: str = "", sort: str = "") -> Template:
+    mr = _month_range(month)
+    report = await hledger.income_statement(JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"])
+    if sort == "amount":
+        for sub in report["subreports"]:
+            sub["rows"].sort(key=lambda r: r["_abs_total"], reverse=True)
+    return Template("income.html", context={"report": report, "depth": depth, "sort": sort, **mr})
 
 
 @get("/balancesheet")
-async def balancesheet(depth: int = 2) -> Template:
-    report = await hledger.balance_sheet(JOURNAL_FILE, depth=depth)
-    return Template("balancesheet.html", context={"report": report, "depth": depth})
+async def balancesheet(depth: int = 2, month: str = "", sort: str = "") -> Template:
+    mr = _month_range(month)
+    report = await hledger.balance_sheet(JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"])
+    if sort == "amount":
+        for sub in report["subreports"]:
+            sub["rows"].sort(key=lambda r: r["_abs_total"], reverse=True)
+    return Template("balancesheet.html", context={"report": report, "depth": depth, "sort": sort, **mr})
 
 
 @get("/register")

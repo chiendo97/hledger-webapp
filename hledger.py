@@ -96,10 +96,14 @@ async def print_json(
     return raw
 
 
-async def balances(file: str, query: str = "", depth: int = 0) -> list[dict[str, Any]]:
+async def balances(file: str, query: str = "", depth: int = 0, begin: str = "", end: str = "") -> list[dict[str, Any]]:
     args = ["hledger", "-f", file, "bal", "-O", "json", "--tree"]
     if depth:
         args += ["--depth", str(depth)]
+    if begin:
+        args += ["-b", begin]
+    if end:
+        args += ["-e", end]
     if query:
         args.append(query)
     raw = json.loads(await _run(args))
@@ -119,18 +123,26 @@ async def balances(file: str, query: str = "", depth: int = 0) -> list[dict[str,
     return rows
 
 
-async def income_statement(file: str, depth: int = 0) -> dict[str, Any]:
+async def income_statement(file: str, depth: int = 0, begin: str = "", end: str = "") -> dict[str, Any]:
     args = ["hledger", "-f", file, "is", "-O", "json"]
     if depth:
         args += ["--depth", str(depth)]
+    if begin:
+        args += ["-b", begin]
+    if end:
+        args += ["-e", end]
     raw = json.loads(await _run(args))
     return _parse_compound_report(raw)
 
 
-async def balance_sheet(file: str, depth: int = 0) -> dict[str, Any]:
+async def balance_sheet(file: str, depth: int = 0, begin: str = "", end: str = "") -> dict[str, Any]:
     args = ["hledger", "-f", file, "bs", "-O", "json"]
     if depth:
         args += ["--depth", str(depth)]
+    if begin:
+        args += ["-b", begin]
+    if end:
+        args += ["-e", end]
     raw = json.loads(await _run(args))
     return _parse_compound_report(raw)
 
@@ -232,11 +244,13 @@ def _parse_compound_report(raw: dict[str, Any]) -> dict[str, Any]:
             depth = name.count(":") if isinstance(name, str) else 0
             amounts = row.get("prrAmounts", [[]])
             amt_list = [_fmt_amount(a) for a in amounts[0]] if amounts and amounts[0] else []
+            abs_total = sum(abs(a["aquantity"]["floatingPoint"]) for a in amounts[0]) if amounts and amounts[0] else 0
             rows.append({
                 "name": name,
                 "depth": depth,
                 "amounts": _fmt_amounts(amounts[0]) if amounts and amounts[0] else "",
                 "amount_items": amt_list,
+                "_abs_total": abs_total,
             })
         totals = sub_data.get("prTotals", {})
         total_amounts = totals.get("prrAmounts", [[]])
