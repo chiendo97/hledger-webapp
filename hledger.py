@@ -24,12 +24,14 @@ def _fmt_amount(amt: dict[str, Any]) -> str:
     """Format an hledger amount dict to a human-readable string."""
     commodity = amt["acommodity"]
     q = amt["aquantity"]
-    value = q["floatingPoint"]
     places = q["decimalPlaces"]
-    if places == 0 or commodity == "vnd":
-        formatted = f"{int(value):,}"
+    if commodity == "vnd":
+        # VND uses '.' as thousands separator, not decimal — use mantissa directly
+        formatted = f"{q['decimalMantissa']:,}"
+    elif places == 0:
+        formatted = f"{int(q['floatingPoint']):,}"
     else:
-        formatted = f"{value:,.{places}f}"
+        formatted = f"{q['floatingPoint']:,.{places}f}"
     return f"{formatted} {commodity}"
 
 
@@ -40,6 +42,7 @@ def _merge_amounts(amounts: list[dict[str, Any]]) -> list[dict[str, Any]]:
         c = a["acommodity"]
         if c in by_commodity:
             by_commodity[c]["aquantity"]["floatingPoint"] += a["aquantity"]["floatingPoint"]
+            by_commodity[c]["aquantity"]["decimalMantissa"] += a["aquantity"]["decimalMantissa"]
             by_commodity[c]["aquantity"]["decimalPlaces"] = max(
                 by_commodity[c]["aquantity"]["decimalPlaces"], a["aquantity"]["decimalPlaces"]
             )
@@ -48,6 +51,7 @@ def _merge_amounts(amounts: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "acommodity": c,
                 "aquantity": {
                     "floatingPoint": a["aquantity"]["floatingPoint"],
+                    "decimalMantissa": a["aquantity"]["decimalMantissa"],
                     "decimalPlaces": a["aquantity"]["decimalPlaces"],
                 },
             }
@@ -270,7 +274,7 @@ def _parse_compound_report(raw: dict[str, Any]) -> dict[str, Any]:
             depth = name.count(":") if isinstance(name, str) else 0
             amounts = row.get("prrAmounts", [[]])
             amt_list = [_fmt_amount(a) for a in _merge_amounts(amounts[0])] if amounts and amounts[0] else []
-            abs_total = sum(abs(a["aquantity"]["floatingPoint"]) for a in amounts[0]) if amounts and amounts[0] else 0
+            abs_total = sum(abs(a["aquantity"]["decimalMantissa"]) for a in amounts[0]) if amounts and amounts[0] else 0
             rows.append({
                 "name": name,
                 "depth": depth,
