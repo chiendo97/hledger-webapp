@@ -33,8 +33,29 @@ def _fmt_amount(amt: dict[str, Any]) -> str:
     return f"{formatted} {commodity}"
 
 
+def _merge_amounts(amounts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Merge amounts with the same commodity by summing their quantities."""
+    by_commodity: dict[str, dict[str, Any]] = {}
+    for a in amounts:
+        c = a["acommodity"]
+        if c in by_commodity:
+            by_commodity[c]["aquantity"]["floatingPoint"] += a["aquantity"]["floatingPoint"]
+            by_commodity[c]["aquantity"]["decimalPlaces"] = max(
+                by_commodity[c]["aquantity"]["decimalPlaces"], a["aquantity"]["decimalPlaces"]
+            )
+        else:
+            by_commodity[c] = {
+                "acommodity": c,
+                "aquantity": {
+                    "floatingPoint": a["aquantity"]["floatingPoint"],
+                    "decimalPlaces": a["aquantity"]["decimalPlaces"],
+                },
+            }
+    return list(by_commodity.values())
+
+
 def _fmt_amounts(amounts: list[dict[str, Any]]) -> str:
-    return ", ".join(_fmt_amount(a) for a in amounts)
+    return ", ".join(_fmt_amount(a) for a in _merge_amounts(amounts))
 
 
 # ── Public API ──────────────────────────────────────────────────────────
@@ -119,6 +140,7 @@ async def balances(file: str, query: str = "", depth: int = 0, begin: str = "", 
             "name": name,
             "depth": depth,
             "amounts": _fmt_amounts(amounts),
+            "amount_items": [_fmt_amount(a) for a in _merge_amounts(amounts)] if amounts else [],
         })
     return rows
 
@@ -247,7 +269,7 @@ def _parse_compound_report(raw: dict[str, Any]) -> dict[str, Any]:
             name = row["prrName"]
             depth = name.count(":") if isinstance(name, str) else 0
             amounts = row.get("prrAmounts", [[]])
-            amt_list = [_fmt_amount(a) for a in amounts[0]] if amounts and amounts[0] else []
+            amt_list = [_fmt_amount(a) for a in _merge_amounts(amounts[0])] if amounts and amounts[0] else []
             abs_total = sum(abs(a["aquantity"]["floatingPoint"]) for a in amounts[0]) if amounts and amounts[0] else 0
             rows.append({
                 "name": name,
@@ -258,7 +280,7 @@ def _parse_compound_report(raw: dict[str, Any]) -> dict[str, Any]:
             })
         totals = sub_data.get("prTotals", {})
         total_amounts = totals.get("prrAmounts", [[]])
-        total_list = [_fmt_amount(a) for a in total_amounts[0]] if total_amounts and total_amounts[0] else []
+        total_list = [_fmt_amount(a) for a in _merge_amounts(total_amounts[0])] if total_amounts and total_amounts[0] else []
         subreports.append({
             "title": sub_title,
             "rows": rows,
@@ -268,7 +290,7 @@ def _parse_compound_report(raw: dict[str, Any]) -> dict[str, Any]:
     # Grand total
     grand_totals = raw.get("cbrTotals", {})
     grand_amounts = grand_totals.get("prrAmounts", [[]])
-    grand_list = [_fmt_amount(a) for a in grand_amounts[0]] if grand_amounts and grand_amounts[0] else []
+    grand_list = [_fmt_amount(a) for a in _merge_amounts(grand_amounts[0])] if grand_amounts and grand_amounts[0] else []
     return {
         "title": title,
         "subreports": subreports,
