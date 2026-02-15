@@ -8,7 +8,7 @@ from datetime import date as dt_date
 from pathlib import Path
 from typing import Annotated
 
-from litestar import Litestar, get, post
+from litestar import Litestar, Request, get, post
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.response import Redirect, Template
 from litestar.static_files import create_static_files_router
@@ -88,9 +88,8 @@ async def new_transaction_form() -> Template:
 
 
 @post("/transactions/new")
-async def create_transaction(
-    data: dict[str, str],
-) -> Redirect:
+async def create_transaction(request: Request) -> Redirect:
+    data = await request.form()
     date = data.get("date", "")
     description = data.get("description", "")
     postings = []
@@ -114,7 +113,8 @@ async def transaction_detail(index: int) -> Template:
 
 
 @post("/transactions/{index:int}")
-async def update_transaction(index: int, data: dict[str, str]) -> Template:
+async def update_transaction(request: Request, index: int) -> Template:
+    data = await request.form()
     date = data.get("date", "")
     description = data.get("description", "")
     tags = []
@@ -171,12 +171,13 @@ async def balancesheet(depth: int = 2, month: str = "", sort: str = "") -> Templ
 async def register_view(account: str = "", month: str = "") -> Template:
     mr = _month_range(month)
     accts = await hledger.accounts(JOURNAL_FILE)
-    rows: list = []
+    txs: list = []
     if account:
-        rows = await hledger.register(JOURNAL_FILE, account, begin=mr["begin"], end=mr["end"])
+        txs = await hledger.print_json(JOURNAL_FILE, query=account, begin=mr["begin"], end=mr["end"])
+        txs.reverse()
     return Template(
         "register.html",
-        context={"rows": rows, "account": account, "accounts": accts, **mr},
+        context={"txs": txs, "account": account, "accounts": accts, **mr},
     )
 
 

@@ -9,42 +9,41 @@
         <button onclick="document.getElementById('modal').innerHTML=''" class="text-gray-400 hover:text-white text-xl">&times;</button>
       </div>
       <div class="p-4 space-y-3">
-        <div class="flex justify-between">
-          <span class="text-gray-400 text-sm">Date</span>
-          <span class="text-sm">{{ tx.tdate }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400 text-sm">Description</span>
-          <span class="text-sm">{{ tx.tdescription }}</span>
-        </div>
-        {% if tx._tags %}
-        <div class="space-y-1">
-          {% for tag in tx._tags %}
-          <div class="flex gap-2 text-sm">
-            <span class="text-gray-500 font-mono">{{ tag.key }}</span>
-            <span class="text-gray-300">{{ tag.value }}</span>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-        <div class="border-t border-gray-800 pt-3 space-y-2">
-          {% for p in tx.tpostings %}
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-300 truncate mr-2">{{ p.paccount }}</span>
-            <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p._amount }}</span>
-          </div>
-          {% if p._tags %}
-          <div class="ml-4 space-y-0.5">
-            {% for tag in p._tags %}
-            <div class="flex gap-2 text-xs text-gray-500">
-              <span class="font-mono">{{ tag.key }}</span>
-              <span>{{ tag.value }}</span>
-            </div>
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-gray-800">
+              <td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Date</td>
+              <td class="text-gray-100 py-1.5 text-right">{{ tx.tdate }}</td>
+            </tr>
+            <tr class="border-b border-gray-800">
+              <td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Description</td>
+              <td class="text-gray-100 py-1.5 text-right break-all">{{ tx.tdescription }}</td>
+            </tr>
+            {% for tag in tx._tags %}
+            <tr class="border-b border-gray-800">
+              <td class="text-gray-500 py-1.5 pr-4 font-mono whitespace-nowrap align-top">{{ tag.key }}</td>
+              <td class="text-gray-300 py-1.5 text-right">{{ tag.value }}</td>
+            </tr>
             {% endfor %}
-          </div>
-          {% endif %}
-          {% endfor %}
-        </div>
+          </tbody>
+        </table>
+        <table class="w-full text-sm">
+          <tbody>
+            {% for p in tx.tpostings %}
+            <tr class="border-b border-gray-800">
+              <td class="text-gray-300 py-1.5 pr-2 break-words">{{ p.paccount }}</td>
+              <td class="font-mono py-1.5 text-right whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p._amount }}</td>
+            </tr>
+            {% if p._tags %}
+            {% for tag in p._tags %}
+            <tr>
+              <td colspan="2" class="pl-4 py-0.5 text-xs text-gray-500"><span class="font-mono">{{ tag.key }}</span> {{ tag.value }}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
         <div class="flex gap-2 pt-3 border-t border-gray-800">
           <button onclick="document.getElementById('tx-view').classList.add('hidden');document.getElementById('tx-edit').classList.remove('hidden')"
                   class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg">Edit</button>

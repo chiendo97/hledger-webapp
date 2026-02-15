@@ -16,21 +16,8 @@
   </select>
 </form>
 
-{% if rows %}
-<div class="space-y-2">
-  {% for r in rows %}
-  <div class="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-      <span class="text-xs text-gray-500 sm:w-24 shrink-0">{{ r.date }}</span>
-      <span class="text-sm text-gray-300 truncate sm:flex-1">{{ r.description }}</span>
-      <div class="flex justify-between sm:gap-6 sm:shrink-0 mt-1 sm:mt-0">
-        <span class="font-mono text-sm whitespace-nowrap {% if r.amount.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ r.amount }}</span>
-        <span class="font-mono text-xs whitespace-nowrap {% if r.running.startswith('-') %}text-red-400{% else %}text-blue-400{% endif %}">{{ r.running }}</span>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
+{% if txs %}
+{% include "partials/tx_list.html" %}
 {% elif account %}
 <p class="text-gray-500 text-center py-8">No entries for {{ account }}.</p>
 {% else %}
