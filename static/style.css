@@ -1,3 +1,8 @@
 /* Minimal overrides — Tailwind handles most styling */
 html { -webkit-tap-highlight-color: transparent; touch-action: manipulation; overscroll-behavior-y: contain; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+
+/* Safe area insets for iOS standalone mode */
+header.sticky { padding-top: env(safe-area-inset-top); }
+nav.fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom); }
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
