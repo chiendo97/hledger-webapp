@@ -1,20 +1,18 @@
 """hledger web app — Litestar + Jinja2 + HTMX."""
 
-from __future__ import annotations
-
-import calendar
 import os
 from datetime import date as dt_date
 from pathlib import Path
-from typing import Annotated
 
 from litestar import Litestar, Request, get, post
 from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.datastructures import State
 from litestar.response import Redirect, Template
-from litestar.static_files import create_static_files_router
+from litestar.static_files import create_static_files_router  # pyright: ignore[reportUnknownVariableType]
 from litestar.template import TemplateConfig
 
 import hledger
+from hledger import PostingInput, Tag, Transaction
 
 JOURNAL_FILE = os.environ.get(
     "HLEDGER_FILE",
@@ -42,7 +40,13 @@ def _month_range(month: str) -> dict[str, str]:
         prev_month = f"{year - 1}-12"
     else:
         prev_month = f"{year}-{mon - 1:02d}"
-    return {"month": month, "begin": begin, "end": end, "prev_month": prev_month, "next_month": next_month}
+    return {
+        "month": month,
+        "begin": begin,
+        "end": end,
+        "prev_month": prev_month,
+        "next_month": next_month,
+    }
 
 
 # ── Routes ──────────────────────────────────────────────────────────────
@@ -54,31 +58,23 @@ async def index() -> Redirect:
 
 
 @get("/transactions")
-async def transactions(
-    q: str = "",
-    month: str = "",
-) -> Template:
+async def transactions(q: str = "", month: str = "") -> Template:
     mr = _month_range(month)
-    txs = await hledger.print_json(JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"])
-    txs.reverse()  # newest first
-    return Template(
-        "transactions.html",
-        context={"txs": txs, "q": q, **mr},
+    txs = await hledger.print_json(
+        JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"]
     )
+    txs.reverse()
+    return Template("transactions.html", context={"txs": txs, "q": q, **mr})
 
 
 @get("/transactions/partial")
-async def transactions_partial(
-    q: str = "",
-    month: str = "",
-) -> Template:
+async def transactions_partial(q: str = "", month: str = "") -> Template:
     mr = _month_range(month)
-    txs = await hledger.print_json(JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"])
-    txs.reverse()
-    return Template(
-        "partials/tx_list.html",
-        context={"txs": txs},
+    txs = await hledger.print_json(
+        JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"]
     )
+    txs.reverse()
+    return Template("partials/tx_list.html", context={"txs": txs})
 
 
 @get("/transactions/new")
@@ -88,17 +84,17 @@ async def new_transaction_form() -> Template:
 
 
 @post("/transactions/new")
-async def create_transaction(request: Request) -> Redirect:
+async def create_transaction(request: Request[object, object, State]) -> Redirect:
     data = await request.form()
-    date = data.get("date", "")
-    description = data.get("description", "")
-    postings = []
+    date = str(data.get("date", ""))
+    description = str(data.get("description", ""))
+    postings: list[PostingInput] = []
     i = 0
     while f"account_{i}" in data:
-        account = data[f"account_{i}"]
-        amount = data.get(f"amount_{i}", "")
+        account = str(data.get(f"account_{i}", ""))
+        amount = str(data.get(f"amount_{i}", ""))
         if account:
-            postings.append({"account": account, "amount": amount})
+            postings.append(PostingInput(account=account, amount=amount))
         i += 1
     if date and description and postings:
         await hledger.add_transaction(JOURNAL_FILE, date, description, postings)
@@ -113,65 +109,87 @@ async def transaction_detail(index: int) -> Template:
 
 
 @post("/transactions/{index:int}")
-async def update_transaction(request: Request, index: int) -> Template:
+async def update_transaction(
+    request: Request[object, object, State], index: int
+) -> Template:
     data = await request.form()
-    date = data.get("date", "")
-    description = data.get("description", "")
-    tags = []
+    date = str(data.get("date", ""))
+    description = str(data.get("description", ""))
+    tags: list[Tag] = []
     i = 0
     while f"tag_key_{i}" in data:
-        key = data[f"tag_key_{i}"]
-        value = data.get(f"tag_value_{i}", "")
+        key = str(data.get(f"tag_key_{i}", ""))
+        value = str(data.get(f"tag_value_{i}", ""))
         if key or value:
-            tags.append({"key": key, "value": value})
+            tags.append(Tag(key=key, value=value))
         i += 1
-    postings = []
+    postings: list[PostingInput] = []
     i = 0
     while f"account_{i}" in data:
-        account = data[f"account_{i}"]
-        amount = data.get(f"amount_{i}", "")
+        account = str(data.get(f"account_{i}", ""))
+        amount = str(data.get(f"amount_{i}", ""))
         if account:
-            postings.append({"account": account, "amount": amount})
+            postings.append(PostingInput(account=account, amount=amount))
         i += 1
     if date and description and postings:
-        await hledger.update_transaction(JOURNAL_FILE, index, date, description, tags, postings)
+        await hledger.update_transaction(
+            JOURNAL_FILE, index, date, description, tags, postings
+        )
     tx = await hledger.get_transaction(JOURNAL_FILE, index)
     accts = await hledger.accounts(JOURNAL_FILE)
     return Template("partials/tx_detail.html", context={"tx": tx, "accounts": accts})
 
 
 @get("/balances")
-async def balances(q: str = "", depth: int = 2, month: str = "", sort: str = "") -> Template:
+async def balances(
+    q: str = "", depth: int = 2, month: str = "", sort: str = ""
+) -> Template:
     rows = await hledger.balances(JOURNAL_FILE, query=q, depth=depth)
     if sort == "amount":
-        rows.sort(key=lambda r: r["_abs_total"], reverse=True)
-    return Template("balances.html", context={"rows": rows, "q": q, "depth": depth, "month": month, "sort": sort})
+        rows.sort(key=lambda r: r.abs_total, reverse=True)
+    return Template(
+        "balances.html",
+        context={"rows": rows, "q": q, "depth": depth, "month": month, "sort": sort},
+    )
 
 
 @get("/incomestatement")
-async def incomestatement(depth: int = 2, month: str = "", sort: str = "") -> Template:
+async def incomestatement(
+    depth: int = 2, month: str = "", sort: str = ""
+) -> Template:
     mr = _month_range(month)
-    report = await hledger.income_statement(JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"])
+    report = await hledger.income_statement(
+        JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"]
+    )
     if sort == "amount":
-        for sub in report["subreports"]:
-            sub["rows"].sort(key=lambda r: r["_abs_total"], reverse=True)
-    return Template("income.html", context={"report": report, "depth": depth, "sort": sort, **mr})
+        for sub in report.subreports:
+            sub.rows.sort(key=lambda r: r.abs_total, reverse=True)
+    return Template(
+        "income.html", context={"report": report, "depth": depth, "sort": sort, **mr}
+    )
 
 
 @get("/balancesheet")
-async def balancesheet(depth: int = 2, month: str = "", sort: str = "") -> Template:
+async def balancesheet(
+    depth: int = 2, month: str = "", sort: str = ""
+) -> Template:
     mr = _month_range(month)
-    report = await hledger.balance_sheet(JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"])
+    report = await hledger.balance_sheet(
+        JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"]
+    )
     if sort == "amount":
-        for sub in report["subreports"]:
-            sub["rows"].sort(key=lambda r: r["_abs_total"], reverse=True)
-    return Template("balancesheet.html", context={"report": report, "depth": depth, "sort": sort, **mr})
+        for sub in report.subreports:
+            sub.rows.sort(key=lambda r: r.abs_total, reverse=True)
+    return Template(
+        "balancesheet.html",
+        context={"report": report, "depth": depth, "sort": sort, **mr},
+    )
 
 
 @get("/register")
 async def register_view(account: str = "", month: str = "") -> Template:
     accts = await hledger.accounts(JOURNAL_FILE)
-    txs: list = []
+    txs: list[Transaction] = []
     if account:
         txs = await hledger.print_json(JOURNAL_FILE, query=account)
         txs.reverse()

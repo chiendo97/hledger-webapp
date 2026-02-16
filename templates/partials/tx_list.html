@@ -1,5 +1,17 @@
-<div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
-  {% for tx in txs %}
+{% set ns = namespace(current_date='') %}
+{% for tx in txs %}
+{% if tx.tdate != ns.current_date %}
+  {% if ns.current_date %}
+  </div>
+  {% endif %}
+  {% set ns.current_date = tx.tdate %}
+  <div class="flex items-center gap-3 {% if not loop.first %}mt-6{% endif %} mb-3">
+    <div class="flex-1 border-t border-gray-600"></div>
+    <span class="text-sm font-medium text-gray-300 whitespace-nowrap">{{ tx.tdate }}</span>
+    <div class="flex-1 border-t border-gray-600"></div>
+  </div>
+  <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
+{% endif %}
   <div class="bg-gray-900 border border-gray-800 rounded-lg p-3 cursor-pointer hover:border-gray-600 transition-colors"
        hx-get="/transactions/{{ tx.tindex }}" hx-target="#modal" hx-swap="innerHTML">
     <div class="flex justify-between items-start mb-2">
@@ -11,12 +23,14 @@
       {% for p in tx.tpostings %}
       <div class="flex justify-between text-xs">
         <span class="text-gray-400 truncate mr-2">{{ p.paccount }}</span>
-        <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p._amount }}</span>
+        <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}</span>
       </div>
       {% endfor %}
     </div>
   </div>
-  {% else %}
-  <p class="text-gray-500 text-center py-8">No transactions found.</p>
-  {% endfor %}
+{% else %}
+<p class="text-gray-500 text-center py-8">No transactions found.</p>
+{% endfor %}
+{% if txs %}
 </div>
+{% endif %}

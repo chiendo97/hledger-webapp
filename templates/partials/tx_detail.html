@@ -19,7 +19,7 @@
               <td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Description</td>
               <td class="text-gray-100 py-1.5 text-right break-all">{{ tx.tdescription }}</td>
             </tr>
-            {% for tag in tx._tags %}
+            {% for tag in tx.tags %}
             <tr class="border-b border-gray-800">
               <td class="text-gray-500 py-1.5 pr-4 font-mono whitespace-nowrap align-top">{{ tag.key }}</td>
               <td class="text-gray-300 py-1.5 text-right">{{ tag.value }}</td>
@@ -32,10 +32,10 @@
             {% for p in tx.tpostings %}
             <tr class="border-b border-gray-800">
               <td class="text-gray-300 py-1.5 pr-2 break-words">{{ p.paccount }}</td>
-              <td class="font-mono py-1.5 text-right whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p._amount }}</td>
+              <td class="font-mono py-1.5 text-right whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}</td>
             </tr>
-            {% if p._tags %}
-            {% for tag in p._tags %}
+            {% if p.tags %}
+            {% for tag in p.tags %}
             <tr>
               <td colspan="2" class="pl-4 py-0.5 text-xs text-gray-500"><span class="font-mono">{{ tag.key }}</span> {{ tag.value }}</td>
             </tr>
@@ -74,7 +74,7 @@
         {# ── Tags (key:value) ── #}
         <div id="tags-list" class="space-y-2">
           <label class="text-xs text-gray-400">Tags</label>
-          {% for tag in tx._tags %}
+          {% for tag in tx.tags %}
           <div class="flex gap-2 tag-row">
             <input type="text" name="tag_key_{{ loop.index0 }}" value="{{ tag.key }}"
                    class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key">
@@ -93,7 +93,7 @@
           <div class="flex gap-2 posting-row">
             <input type="text" name="account_{{ loop.index0 }}" value="{{ p.paccount }}" list="acct-list"
                    class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account">
-            <input type="text" name="amount_{{ loop.index0 }}" value="{{ p._amount }}"
+            <input type="text" name="amount_{{ loop.index0 }}" value="{{ p.amount_display }}"
                    class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount">
             <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button>
           </div>
