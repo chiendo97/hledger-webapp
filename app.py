@@ -180,7 +180,7 @@ async def balancesheet(
 ) -> Template:
     mr = _month_range(month)
     report = await hledger.balance_sheet(
-        JOURNAL_FILE, depth=depth, begin=mr["begin"], end=mr["end"]
+        JOURNAL_FILE, depth=depth, end=mr["end"]
     )
     if sort == "amount":
         for sub in report.subreports:
