@@ -16,6 +16,14 @@
     <h1 class="text-lg font-semibold text-center">{% block header %}hledger{% endblock %}</h1>
   </header>
 
+  <!-- Pull-to-refresh indicator -->
+  <div id="ptr-indicator" class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-200" style="transform: translateY(-100%)">
+    <div class="bg-gray-800 text-gray-300 text-xs px-4 py-2 rounded-b-lg flex items-center gap-2">
+      <svg id="ptr-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+      <span id="ptr-text">Pull to refresh</span>
+    </div>
+  </div>
+
   <!-- Content -->
   <main class="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 py-4">
     {% block content %}{% endblock %}
@@ -45,5 +53,49 @@
     </a>
   </nav>
   <div id="modal"></div>
+<script>
+(function(){
+  const threshold = 80;
+  let startY = 0, pulling = false, distance = 0;
+  const indicator = document.getElementById('ptr-indicator');
+  const arrow = document.getElementById('ptr-arrow');
+  const text = document.getElementById('ptr-text');
+
+  document.addEventListener('touchstart', function(e){
+    if(window.scrollY === 0 && !document.getElementById('tx-modal')){
+      startY = e.touches[0].clientY;
+      pulling = true;
+      distance = 0;
+    }
+  }, {passive: true});
+
+  document.addEventListener('touchmove', function(e){
+    if(!pulling) return;
+    distance = Math.max(0, e.touches[0].clientY - startY);
+    if(distance === 0) return;
+    const progress = Math.min(distance / threshold, 1);
+    indicator.style.transform = 'translateY(' + (progress * 100 - 100) + '%)';
+    if(distance >= threshold){
+      arrow.style.transform = 'rotate(180deg)';
+      text.textContent = 'Release to refresh';
+    } else {
+      arrow.style.transform = '';
+      text.textContent = 'Pull to refresh';
+    }
+  }, {passive: true});
+
+  document.addEventListener('touchend', function(){
+    if(!pulling) return;
+    pulling = false;
+    if(distance >= threshold){
+      text.textContent = 'Refreshing...';
+      arrow.innerHTML = '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31" stroke-dashoffset="10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/></circle>';
+      location.reload();
+    } else {
+      indicator.style.transform = 'translateY(-100%)';
+    }
+  });
+})();
+</script>
 </body>
 </html>
