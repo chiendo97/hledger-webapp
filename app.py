@@ -1,5 +1,6 @@
 """hledger web app — Litestar + Jinja2 + HTMX."""
 
+import asyncio
 import os
 from datetime import date as dt_date
 from pathlib import Path
@@ -12,7 +13,7 @@ from litestar.static_files import create_static_files_router  # pyright: ignore[
 from litestar.template import TemplateConfig
 
 import hledger
-from hledger import PostingInput, Tag, Transaction
+from hledger import PostingInput, Tag
 
 JOURNAL_FILE = os.environ.get(
     "HLEDGER_FILE",
@@ -103,8 +104,10 @@ async def create_transaction(request: Request[object, object, State]) -> Redirec
 
 @get("/transactions/{index:int}")
 async def transaction_detail(index: int) -> Template:
-    tx = await hledger.get_transaction(JOURNAL_FILE, index)
-    accts = await hledger.accounts(JOURNAL_FILE)
+    tx, accts = await asyncio.gather(
+        hledger.get_transaction(JOURNAL_FILE, index),
+        hledger.accounts(JOURNAL_FILE),
+    )
     return Template("partials/tx_detail.html", context={"tx": tx, "accounts": accts})
 
 
@@ -135,8 +138,10 @@ async def update_transaction(
         await hledger.update_transaction(
             JOURNAL_FILE, index, date, description, tags, postings
         )
-    tx = await hledger.get_transaction(JOURNAL_FILE, index)
-    accts = await hledger.accounts(JOURNAL_FILE)
+    tx, accts = await asyncio.gather(
+        hledger.get_transaction(JOURNAL_FILE, index),
+        hledger.accounts(JOURNAL_FILE),
+    )
     return Template("partials/tx_detail.html", context={"tx": tx, "accounts": accts})
 
 
@@ -188,11 +193,15 @@ async def balancesheet(
 
 @get("/register")
 async def register_view(account: str = "", month: str = "") -> Template:
-    accts = await hledger.accounts(JOURNAL_FILE)
-    txs: list[Transaction] = []
     if account:
-        txs = await hledger.print_json(JOURNAL_FILE, query=account)
+        accts, txs = await asyncio.gather(
+            hledger.accounts(JOURNAL_FILE),
+            hledger.print_json(JOURNAL_FILE, query=account),
+        )
         txs.reverse()
+    else:
+        accts = await hledger.accounts(JOURNAL_FILE)
+        txs = []
     return Template(
         "register.html",
         context={"txs": txs, "account": account, "accounts": accts, "month": month},

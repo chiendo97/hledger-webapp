@@ -1,6 +1,7 @@
 """hledger CLI wrapper — async subprocess calls returning parsed JSON."""
 
 import asyncio
+import time
 from pathlib import Path
 
 from pydantic import BaseModel, Field, TypeAdapter
@@ -315,12 +316,42 @@ def format_comment_tags(tags: list[Tag]) -> str:
     return "\n".join(parts)
 
 
+_print_cache: tuple[float, str, list[Transaction]] = (0.0, "", [])
+_PRINT_TTL = 30  # seconds
+
+
+def _invalidate_cache() -> None:
+    global _print_cache, _accounts_cache
+    _print_cache = (0.0, "", [])
+    _accounts_cache = (0.0, [])
+
+
+async def _print_all(file: str) -> list[Transaction]:
+    """Fetch all transactions, with short TTL cache."""
+    global _print_cache
+    ts, cached_file, cached_txs = _print_cache
+    if cached_txs and cached_file == file and time.monotonic() - ts < _PRINT_TTL:
+        return cached_txs
+    args = ["hledger", "-f", file, "print", "-O", "json"]
+    raw_str = await _run(args)
+    txs = _tx_adapter.validate_json(raw_str)
+    for tx in txs:
+        tx.tags = parse_comment_tags(tx.tcomment)
+        for p in tx.tpostings:
+            p.amount_display = _fmt_amounts(p.pamount)
+            p.tags = parse_comment_tags(p.pcomment)
+    _print_cache = (time.monotonic(), file, txs)
+    return txs
+
+
 async def print_json(
     file: str,
     query: str = "",
     begin: str = "",
     end: str = "",
 ) -> list[Transaction]:
+    if not query and not begin and not end:
+        return list(await _print_all(file))
     args = ["hledger", "-f", file, "print", "-O", "json"]
     if begin:
         args += ["-b", begin]
@@ -450,10 +481,11 @@ async def add_transaction(
     async with asyncio.Lock():
         with open(file, "a") as f:
             _ = f.write("\n".join(lines))
+    _invalidate_cache()
 
 
 async def get_transaction(file: str, index: int) -> Transaction:
-    txs = await print_json(file)
+    txs = await _print_all(file)
     for tx in txs:
         if tx.tindex == index:
             return tx
@@ -489,9 +521,20 @@ async def update_transaction(
     new_block = "\n".join(lines) + "\n"
     file_lines[start_line - 1 : end_line - 1] = [new_block]
     _ = path.write_text("".join(file_lines))
+    _invalidate_cache()
+
+
+_accounts_cache: tuple[float, list[str]] = (0.0, [])
+_ACCOUNTS_TTL = 60  # seconds
 
 
 async def accounts(file: str) -> list[str]:
+    global _accounts_cache
+    ts, cached = _accounts_cache
+    if cached and time.monotonic() - ts < _ACCOUNTS_TTL:
+        return cached
     args = ["hledger", "-f", file, "accounts"]
     output = await _run(args)
-    return [a for a in output.strip().split("\n") if a]
+    result = [a for a in output.strip().split("\n") if a]
+    _accounts_cache = (time.monotonic(), result)
+    return result
