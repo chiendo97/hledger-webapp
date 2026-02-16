@@ -4,6 +4,6 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ${HLEDGER_JOURNAL:-../2025.journal}:/data/journal:ro
+      - ${HLEDGER_DIR:-..}:/data:ro
     environment:
-      - HLEDGER_FILE=/data/journal
+      - HLEDGER_FILE=/data/2025.journal
