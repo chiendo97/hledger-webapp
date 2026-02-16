@@ -19,6 +19,10 @@ COPY app.py hledger.py ./
 COPY templates/ templates/
 COPY static/ static/
 
+RUN groupadd --gid 1000 appuser && \
+    useradd --create-home --uid 1000 --gid 1000 appuser
+USER appuser
+
 EXPOSE 8000
 
 ENV UV_NO_SYNC=1
