@@ -6,8 +6,7 @@
 {% block content %}
 {% include "partials/month_picker.html" %}
 <!-- Search / Filter -->
-<form hx-get="/transactions/partial" hx-target="#tx-list" hx-trigger="submit" hx-swap="innerHTML"
-      class="flex gap-2 mb-4">
+<form action="/transactions" method="get" class="flex gap-2 mb-4">
   <input type="hidden" name="month" value="{{ month }}">
   <input type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
