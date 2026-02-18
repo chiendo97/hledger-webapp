@@ -516,7 +516,10 @@ async def update_transaction(
         else:
             lines.append(f"    {p.account}")
 
-    path = Path(file)
+    # Use the actual source file from tsourcepos (may differ from main journal
+    # when the transaction lives in an included file like 2025.card.journal).
+    source_file = tx.tsourcepos[0].sourceName
+    path = Path(source_file) if source_file else Path(file)
     file_lines = path.read_text().splitlines(keepends=True)
     new_block = "\n".join(lines) + "\n"
     file_lines[start_line - 1 : end_line - 1] = [new_block]
