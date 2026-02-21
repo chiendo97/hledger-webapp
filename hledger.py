@@ -36,11 +36,17 @@ class PostingInput(BaseModel):
     amount: str = ""
 
 
+class BalanceAssertion(BaseModel):
+    baamount: Amount
+
+
 class Posting(BaseModel):
     paccount: str
     pamount: list[Amount] = Field(default_factory=list)
+    pbalanceassertion: BalanceAssertion | None = None
     pcomment: str = ""
     amount_display: str = ""
+    balance_assertion_display: str = ""
     tags: list[Tag] = Field(default_factory=list)
 
 
@@ -339,6 +345,8 @@ async def _print_all(file: str) -> list[Transaction]:
         tx.tags = parse_comment_tags(tx.tcomment)
         for p in tx.tpostings:
             p.amount_display = _fmt_amounts(p.pamount)
+            if p.pbalanceassertion:
+                p.balance_assertion_display = _fmt_amount(p.pbalanceassertion.baamount)
             p.tags = parse_comment_tags(p.pcomment)
     _print_cache = (time.monotonic(), file, txs)
     return txs
@@ -365,6 +373,8 @@ async def print_json(
         tx.tags = parse_comment_tags(tx.tcomment)
         for p in tx.tpostings:
             p.amount_display = _fmt_amounts(p.pamount)
+            if p.pbalanceassertion:
+                p.balance_assertion_display = _fmt_amount(p.pbalanceassertion.baamount)
             p.tags = parse_comment_tags(p.pcomment)
     return txs
 

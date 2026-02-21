@@ -32,7 +32,7 @@
             {% for p in tx.tpostings %}
             <tr class="border-b border-gray-800">
               <td class="text-gray-300 py-1.5 pr-2 break-words">{{ p.paccount }}</td>
-              <td class="font-mono py-1.5 text-right whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}</td>
+              <td class="font-mono py-1.5 text-right whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}{% if p.balance_assertion_display %} <span class="text-gray-500">= {{ p.balance_assertion_display }}</span>{% endif %}</td>
             </tr>
             {% if p.tags %}
             {% for tag in p.tags %}
