@@ -31,13 +31,12 @@
     <div class="text-sm font-medium mb-1 break-words">{{ r.description }}</div>
     <div class="flex justify-between text-xs">
       <span class="text-gray-400 truncate mr-2">{{ r.account }}</span>
+      {% if r.running %}
+      <span class="font-mono whitespace-nowrap text-gray-500">= {{ r.running }}</span>
+      {% else %}
       <span class="font-mono whitespace-nowrap">{{ r.amount }}</span>
+      {% endif %}
     </div>
-    {% if r.running %}
-    <div class="flex justify-end text-xs mt-1">
-      <span class="font-mono text-gray-500">= {{ r.running }}</span>
-    </div>
-    {% endif %}
   </div>
   {% endfor %}
 </div>
