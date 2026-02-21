@@ -10,12 +10,16 @@
 {% for sub in report.subreports %}
 <div class="mb-6">
   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">{{ sub.title }}</h2>
-  <table class="w-full text-sm">
+  <table class="w-full text-sm table-fixed">
+    <colgroup>
+      <col class="w-3/5">
+      <col class="w-2/5">
+    </colgroup>
     <tbody>
     {% for row in sub.rows %}
       <tr class="border-b border-gray-800 hover:bg-gray-900/50 cursor-pointer" onclick="window.location='/register?account={{ row.name }}{% if month %}&month={{ month }}{% endif %}'">
-        <td class="py-2 pr-2 text-gray-400 break-words" style="padding-left: {{ row.depth * 12 }}px">{{ row.name }}</td>
-        <td class="py-2 pl-2 font-mono text-right whitespace-nowrap {% if row.amounts.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ row.amounts }}</td>
+        <td class="py-2 pr-2 text-gray-400 truncate" style="padding-left: {{ row.depth * 12 }}px">{{ row.name }}</td>
+        <td class="py-2 pl-2 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis {% if row.amounts.startswith('-') %}text-red-400{% else %}text-green-400{% endif %}">{{ row.amounts }}</td>
       </tr>
     {% endfor %}
       <tr class="bg-gray-800/50">

@@ -121,7 +121,7 @@ _tx_adapter = TypeAdapter(list[Transaction])
 _bal_adapter = TypeAdapter(
     tuple[list[tuple[str, str, int, list[Amount]]], list[Amount]]
 )
-_reg_adapter = TypeAdapter(list[tuple[str, str, str, _RegPosting, list[Amount]]])
+_reg_adapter = TypeAdapter(list[tuple[str, str | None, str, _RegPosting, list[Amount]]])
 _compound_adapter = TypeAdapter(_CompoundReportRaw)
 
 
