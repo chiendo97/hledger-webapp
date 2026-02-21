@@ -99,6 +99,9 @@
                    class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account">
             <input type="text" name="amount_{{ loop.index0 }}" value="{{ p.amount_display }}"
                    class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount">
+            {% if p.balance_assertion_display %}
+            <input type="hidden" name="balance_assertion_{{ loop.index0 }}" value="{{ p.balance_assertion_display }}">
+            {% endif %}
             <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button>
           </div>
           {% endfor %}

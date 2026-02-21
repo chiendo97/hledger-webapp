@@ -131,8 +131,13 @@ async def update_transaction(
     while f"account_{i}" in data:
         account = str(data.get(f"account_{i}", ""))
         amount = str(data.get(f"amount_{i}", ""))
+        balance_assertion = str(data.get(f"balance_assertion_{i}", ""))
         if account:
-            postings.append(PostingInput(account=account, amount=amount))
+            postings.append(
+                PostingInput(
+                    account=account, amount=amount, balance_assertion=balance_assertion
+                )
+            )
         i += 1
     if date and description and postings:
         await hledger.update_transaction(

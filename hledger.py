@@ -34,6 +34,7 @@ class Tag(BaseModel):
 class PostingInput(BaseModel):
     account: str
     amount: str = ""
+    balance_assertion: str = ""
 
 
 class BalanceAssertion(BaseModel):
@@ -522,7 +523,11 @@ async def update_transaction(
     for p in postings:
         if p.amount:
             amount = _normalize_amount(p.amount)
-            lines.append(f"    {p.account}    {amount}")
+            if p.balance_assertion:
+                ba = _normalize_amount(p.balance_assertion)
+                lines.append(f"    {p.account}    {amount} = {ba}")
+            else:
+                lines.append(f"    {p.account}    {amount}")
         else:
             lines.append(f"    {p.account}")
 
