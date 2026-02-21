@@ -15,8 +15,32 @@
   </select>
 </form>
 
-{% if txs %}
-{% include "partials/tx_list.html" %}
+{% if rows %}
+<div class="space-y-2">
+  {% set ns = namespace(current_date='') %}
+  {% for r in rows %}
+  {% if r.date != ns.current_date %}
+    {% set ns.current_date = r.date %}
+    <div class="flex items-center gap-3 {% if not loop.first %}mt-4{% endif %} mb-2">
+      <div class="flex-1 border-t border-gray-600"></div>
+      <span class="text-sm font-medium text-gray-300 whitespace-nowrap">{{ r.date }}</span>
+      <div class="flex-1 border-t border-gray-600"></div>
+    </div>
+  {% endif %}
+  <div class="bg-gray-900 border border-gray-800 rounded-lg p-3">
+    <div class="text-sm font-medium mb-1 break-words">{{ r.description }}</div>
+    <div class="flex justify-between text-xs">
+      <span class="text-gray-400 truncate mr-2">{{ r.account }}</span>
+      <span class="font-mono whitespace-nowrap">{{ r.amount }}</span>
+    </div>
+    {% if r.running %}
+    <div class="flex justify-end text-xs mt-1">
+      <span class="font-mono text-gray-500">= {{ r.running }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
 {% elif account %}
 <p class="text-gray-500 text-center py-8">No entries for {{ account }}.</p>
 {% else %}

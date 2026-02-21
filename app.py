@@ -194,17 +194,16 @@ async def balancesheet(
 @get("/register")
 async def register_view(account: str = "", month: str = "") -> Template:
     if account:
-        accts, txs = await asyncio.gather(
+        accts, rows = await asyncio.gather(
             hledger.accounts(JOURNAL_FILE),
-            hledger.print_json(JOURNAL_FILE, query=account),
+            hledger.register(JOURNAL_FILE, account=account),
         )
-        txs.reverse()
     else:
         accts = await hledger.accounts(JOURNAL_FILE)
-        txs = []
+        rows = []
     return Template(
         "register.html",
-        context={"txs": txs, "account": account, "accounts": accts, "month": month},
+        context={"rows": rows, "account": account, "accounts": accts, "month": month},
     )
 
 
