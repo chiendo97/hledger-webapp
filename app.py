@@ -61,11 +61,7 @@ async def index() -> Redirect:
 @get("/transactions")
 async def transactions(q: str = "", month: str = "") -> Template:
     mr = _month_range(month)
-    txs = await hledger.print_json(
-        JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"]
-    )
-    txs.reverse()
-    return Template("transactions.html", context={"txs": txs, "q": q, **mr})
+    return Template("transactions.html", context={"q": q, **mr})
 
 
 @get("/transactions/partial")
@@ -154,17 +150,37 @@ async def update_transaction(
 async def balances(
     q: str = "", depth: int = 2, month: str = "", sort: str = ""
 ) -> Template:
+    return Template(
+        "balances.html",
+        context={"q": q, "depth": depth, "month": month, "sort": sort},
+    )
+
+
+@get("/balances/partial")
+async def balances_partial(
+    q: str = "", depth: int = 2, month: str = "", sort: str = ""
+) -> Template:
     rows = await hledger.balances(JOURNAL_FILE, query=q, depth=depth)
     if sort == "amount":
         rows.sort(key=lambda r: r.abs_total, reverse=True)
     return Template(
-        "balances.html",
-        context={"rows": rows, "q": q, "depth": depth, "month": month, "sort": sort},
+        "partials/bal_content.html",
+        context={"rows": rows, "month": month},
     )
 
 
 @get("/incomestatement")
 async def incomestatement(
+    depth: int = 2, month: str = "", sort: str = ""
+) -> Template:
+    mr = _month_range(month)
+    return Template(
+        "income.html", context={"depth": depth, "sort": sort, **mr}
+    )
+
+
+@get("/incomestatement/partial")
+async def incomestatement_partial(
     depth: int = 2, month: str = "", sort: str = ""
 ) -> Template:
     mr = _month_range(month)
@@ -175,12 +191,23 @@ async def incomestatement(
         for sub in report.subreports:
             sub.rows.sort(key=lambda r: r.abs_total, reverse=True)
     return Template(
-        "income.html", context={"report": report, "depth": depth, "sort": sort, **mr}
+        "partials/is_content.html", context={"report": report, "month": month}
     )
 
 
 @get("/balancesheet")
 async def balancesheet(
+    depth: int = 2, month: str = "", sort: str = ""
+) -> Template:
+    mr = _month_range(month)
+    return Template(
+        "balancesheet.html",
+        context={"depth": depth, "sort": sort, **mr},
+    )
+
+
+@get("/balancesheet/partial")
+async def balancesheet_partial(
     depth: int = 2, month: str = "", sort: str = ""
 ) -> Template:
     mr = _month_range(month)
@@ -191,24 +218,26 @@ async def balancesheet(
         for sub in report.subreports:
             sub.rows.sort(key=lambda r: r.abs_total, reverse=True)
     return Template(
-        "balancesheet.html",
-        context={"report": report, "depth": depth, "sort": sort, **mr},
+        "partials/bs_content.html",
+        context={"report": report, "month": month},
     )
 
 
 @get("/register")
 async def register_view(account: str = "", month: str = "") -> Template:
-    if account:
-        accts, rows = await asyncio.gather(
-            hledger.accounts(JOURNAL_FILE),
-            hledger.register(JOURNAL_FILE, account=account),
-        )
-    else:
-        accts = await hledger.accounts(JOURNAL_FILE)
-        rows = []
+    accts = await hledger.accounts(JOURNAL_FILE)
     return Template(
         "register.html",
-        context={"rows": rows, "account": account, "accounts": accts, "month": month},
+        context={"account": account, "accounts": accts, "month": month},
+    )
+
+
+@get("/register/partial")
+async def register_partial(account: str = "") -> Template:
+    rows = await hledger.register(JOURNAL_FILE, account=account)
+    return Template(
+        "partials/reg_content.html",
+        context={"rows": rows, "account": account},
     )
 
 
@@ -224,9 +253,13 @@ app = Litestar(
         transaction_detail,
         update_transaction,
         balances,
+        balances_partial,
         incomestatement,
+        incomestatement_partial,
         balancesheet,
+        balancesheet_partial,
         register_view,
+        register_partial,
         create_static_files_router(path="/static", directories=[STATIC_DIR]),
     ],
     template_config=TemplateConfig(

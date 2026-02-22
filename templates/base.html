@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body hx-boost="true" class="bg-gray-950 text-gray-100 min-h-screen" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
+  <div id="loading-bar"></div>
   <!-- Top bar -->
   <header class="sticky top-0 z-40 bg-gray-900 border-b border-gray-800 px-4 py-3">
     <h1 class="text-lg font-semibold text-center">{% block header %}hledger{% endblock %}</h1>
@@ -58,6 +59,16 @@
     </a>
   </nav>
   <div id="modal"></div>
+<script>
+(function(){
+  var bar=document.getElementById('loading-bar');
+  document.addEventListener('htmx:beforeRequest',function(){bar.className='active';});
+  document.addEventListener('htmx:afterRequest',function(){
+    bar.className='done';
+    setTimeout(function(){bar.className='';},300);
+  });
+})();
+</script>
 <script>
 (function(){
   const threshold = 80;
