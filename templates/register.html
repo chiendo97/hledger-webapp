@@ -6,7 +6,7 @@
 {% block content %}
 <form method="get" class="mb-4">
   <input type="hidden" name="month" value="{{ month }}">
-  <select name="account" onchange="this.form.submit()"
+  <select name="account" onchange="this.form.requestSubmit()"
           class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
     <option value="">Select account...</option>
     {% for a in accounts %}

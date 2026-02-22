@@ -1,9 +1,14 @@
 <div class="flex items-center justify-center gap-2 mb-3">
-  <a href="?month={{ prev_month }}{% if depth is defined %}&depth={{ depth }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}"
+  <a href="?month={{ prev_month }}{% if depth is defined %}&depth={{ depth }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}{% if sort is defined and sort %}&sort={{ sort }}{% endif %}"
      class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">&larr;</a>
-  <input type="month" name="month" value="{{ month }}"
-         onchange="window.location.search='?month='+this.value+'{% if depth is defined %}&depth={{ depth }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}'"
-         class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500">
-  <a href="?month={{ next_month }}{% if depth is defined %}&depth={{ depth }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}"
+  <form method="get" class="contents">
+    {% if depth is defined %}<input type="hidden" name="depth" value="{{ depth }}">{% endif %}
+    {% if q is defined and q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    {% if sort is defined and sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+    <input type="month" name="month" value="{{ month }}"
+           onchange="this.form.requestSubmit()"
+           class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500">
+  </form>
+  <a href="?month={{ next_month }}{% if depth is defined %}&depth={{ depth }}{% endif %}{% if q is defined and q %}&q={{ q }}{% endif %}{% if sort is defined and sort %}&sort={{ sort }}{% endif %}"
      class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">&rarr;</a>
 </div>

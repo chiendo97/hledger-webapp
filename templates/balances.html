@@ -22,7 +22,9 @@
   </colgroup>
   <tbody>
   {% for row in rows %}
-    <tr class="border-b border-gray-800 hover:bg-gray-900/50 cursor-pointer" onclick="window.location='/register?account={{ row.name }}{% if month %}&month={{ month }}{% endif %}'">
+    <tr class="border-b border-gray-800 hover:bg-gray-900/50 cursor-pointer"
+        hx-get="/register?account={{ row.name }}{% if month %}&month={{ month }}{% endif %}"
+        hx-push-url="true" hx-target="body" hx-swap="innerHTML">
       <td class="py-2 pr-2 text-gray-400 truncate" style="padding-left: {{ row.depth * 12 }}px">{{ row.name }}</td>
       <td class="py-2 pl-2 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis">
         {% if row.amount_items|length > 1 %}
