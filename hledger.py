@@ -61,6 +61,35 @@ class Transaction(BaseModel):
     tsourcepos: list[SourcePos] = Field(default_factory=list)
     tags: list[Tag] = Field(default_factory=list)
 
+    @property
+    def view_json(self) -> str:
+        import json
+
+        return json.dumps(
+            {
+                "tindex": self.tindex,
+                "tdate": self.tdate,
+                "tdescription": self.tdescription,
+                "tags": [{"key": t.key, "value": t.value} for t in self.tags],
+                "tpostings": [
+                    {
+                        "paccount": p.paccount,
+                        "amount_display": p.amount_display,
+                        "balance_assertion_display": p.balance_assertion_display,
+                        "negative": (
+                            p.pamount[0].aquantity.floatingPoint < 0
+                            if p.pamount
+                            else False
+                        ),
+                        "tags": [
+                            {"key": t.key, "value": t.value} for t in p.tags
+                        ],
+                    }
+                    for p in self.tpostings
+                ],
+            }
+        )
+
 
 class BalanceRow(BaseModel):
     name: str

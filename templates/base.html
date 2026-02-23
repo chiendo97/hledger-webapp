@@ -60,6 +60,56 @@
   </nav>
   <div id="modal"></div>
 <script>
+function showTxDetail(jsonStr){
+  var tx=JSON.parse(jsonStr);
+  var e=function(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+  var tagsHtml='';
+  for(var i=0;i<tx.tags.length;i++){
+    var t=tx.tags[i];
+    tagsHtml+='<tr class="border-b border-gray-800"><td class="text-gray-500 py-1.5 pr-4 font-mono whitespace-nowrap align-top">'+e(t.key)+'</td><td class="text-gray-300 py-1.5 text-right">'+e(t.value)+'</td></tr>';
+  }
+  var postingsHtml='';
+  for(var i=0;i<tx.tpostings.length;i++){
+    var p=tx.tpostings[i];
+    postingsHtml+='<tr class="border-b border-gray-800"><td class="text-gray-300 py-1.5 pr-2 break-words">'+e(p.paccount)+'</td>';
+    if(p.balance_assertion_display){
+      postingsHtml+='<td class="font-mono py-1.5 text-right whitespace-nowrap text-gray-500">= '+e(p.balance_assertion_display)+'</td>';
+    }else{
+      var c=p.negative?'text-red-400':'text-green-400';
+      postingsHtml+='<td class="font-mono py-1.5 text-right whitespace-nowrap '+c+'">'+e(p.amount_display)+'</td>';
+    }
+    postingsHtml+='</tr>';
+    if(p.tags&&p.tags.length){
+      for(var j=0;j<p.tags.length;j++){
+        var pt=p.tags[j];
+        postingsHtml+='<tr><td colspan="2" class="pl-4 py-0.5 text-xs text-gray-500"><span class="font-mono">'+e(pt.key)+'</span> '+e(pt.value)+'</td></tr>';
+      }
+    }
+  }
+  var modal=document.getElementById('modal');
+  modal.innerHTML=
+    '<div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onclick="if(event.target===this)document.getElementById(\'modal\').innerHTML=\'\'">'+
+    '<div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg lg:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">'+
+    '<div id="tx-view">'+
+    '<div class="flex justify-between items-center p-4 border-b border-gray-800">'+
+    '<h2 class="text-lg font-semibold">Transaction #'+tx.tindex+'</h2>'+
+    '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="text-gray-400 hover:text-white text-xl">&times;</button>'+
+    '</div>'+
+    '<div class="p-4 space-y-3">'+
+    '<table class="w-full text-sm"><tbody>'+
+    '<tr class="border-b border-gray-800"><td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Date</td><td class="text-gray-100 py-1.5 text-right">'+e(tx.tdate)+'</td></tr>'+
+    '<tr class="border-b border-gray-800"><td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Description</td><td class="text-gray-100 py-1.5 text-right break-all">'+e(tx.tdescription)+'</td></tr>'+
+    tagsHtml+
+    '</tbody></table>'+
+    '<table class="w-full text-sm"><tbody>'+postingsHtml+'</tbody></table>'+
+    '<div class="flex gap-2 pt-3 border-t border-gray-800">'+
+    '<button hx-get="/transactions/'+tx.tindex+'" hx-target="#modal" hx-swap="innerHTML" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg">Edit</button>'+
+    '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Close</button>'+
+    '</div></div></div></div></div>';
+  htmx.process(modal);
+}
+</script>
+<script>
 (function(){
   var bar=document.getElementById('loading-bar');
   document.addEventListener('htmx:beforeRequest',function(){bar.className='active';});
