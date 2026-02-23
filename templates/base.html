@@ -126,9 +126,10 @@
               <h2 class="text-lg font-semibold">Edit Transaction</h2>
               <button @click="tx = null" class="text-gray-400 hover:text-white text-xl">&times;</button>
             </div>
-            <form :hx-post="'/transactions/' + tx.tindex" hx-swap="none"
-                  hx-on::after-request="if(event.detail.successful){window.dispatchEvent(new Event('close-modal'));window.dispatchEvent(new Event('refresh'))}"
-                  class="p-4 space-y-3">
+            <form @submit.prevent="
+                    fetch('/transactions/' + tx.tindex, { method: 'POST', body: new FormData($el) })
+                      .then(r => { if (r.ok) { tx = null; window.dispatchEvent(new Event('refresh')) } })
+                  " class="p-4 space-y-3">
               <div>
                 <label class="text-xs text-gray-400">Date</label>
                 <input type="date" name="date" :value="tx.tdate"
