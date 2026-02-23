@@ -1,6 +1,5 @@
 """hledger web app — Litestar + Jinja2 + HTMX."""
 
-import asyncio
 import os
 from datetime import date as dt_date
 from pathlib import Path
@@ -98,19 +97,10 @@ async def create_transaction(request: Request[object, object, State]) -> Redirec
     return Redirect(path="/transactions")
 
 
-@get("/transactions/{index:int}")
-async def transaction_detail(index: int) -> Template:
-    tx, accts = await asyncio.gather(
-        hledger.get_transaction(JOURNAL_FILE, index),
-        hledger.accounts(JOURNAL_FILE),
-    )
-    return Template("partials/tx_detail.html", context={"tx": tx, "accounts": accts})
-
-
 @post("/transactions/{index:int}")
 async def update_transaction(
     request: Request[object, object, State], index: int
-) -> Template:
+) -> None:
     data = await request.form()
     date = str(data.get("date", ""))
     description = str(data.get("description", ""))
@@ -139,11 +129,6 @@ async def update_transaction(
         await hledger.update_transaction(
             JOURNAL_FILE, index, date, description, tags, postings
         )
-    tx, accts = await asyncio.gather(
-        hledger.get_transaction(JOURNAL_FILE, index),
-        hledger.accounts(JOURNAL_FILE),
-    )
-    return Template("partials/tx_detail.html", context={"tx": tx, "accounts": accts})
 
 
 @get("/balances")
@@ -248,7 +233,6 @@ app = Litestar(
         transactions_partial,
         new_transaction_form,
         create_transaction,
-        transaction_detail,
         update_transaction,
         balances,
         balances_partial,
