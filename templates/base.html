@@ -63,6 +63,7 @@
 function showTxDetail(jsonStr){
   var tx=JSON.parse(jsonStr);
   var e=function(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+  var a=function(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   var tagsHtml='';
   for(var i=0;i<tx.tags.length;i++){
     var t=tx.tags[i];
@@ -86,6 +87,20 @@ function showTxDetail(jsonStr){
       }
     }
   }
+  var editTagsHtml='';
+  for(var i=0;i<tx.tags.length;i++){
+    var t=tx.tags[i];
+    editTagsHtml+='<div class="flex gap-2 tag-row"><input type="text" name="tag_key_'+i+'" value="'+a(t.key)+'" class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key"><input type="text" name="tag_value_'+i+'" value="'+a(t.value)+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="value"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button></div>';
+  }
+  var editPostingsHtml='';
+  for(var i=0;i<tx.tpostings.length;i++){
+    var p=tx.tpostings[i];
+    editPostingsHtml+='<div class="flex gap-2 posting-row"><input type="text" name="account_'+i+'" value="'+a(p.paccount)+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account"><input type="text" name="amount_'+i+'" value="'+a(p.amount_display)+'" class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount">';
+    if(p.balance_assertion_display){
+      editPostingsHtml+='<input type="hidden" name="balance_assertion_'+i+'" value="'+a(p.balance_assertion_display)+'">';
+    }
+    editPostingsHtml+='<button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button></div>';
+  }
   var modal=document.getElementById('modal');
   modal.innerHTML=
     '<div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onclick="if(event.target===this)document.getElementById(\'modal\').innerHTML=\'\'">'+
@@ -103,10 +118,43 @@ function showTxDetail(jsonStr){
     '</tbody></table>'+
     '<table class="w-full text-sm"><tbody>'+postingsHtml+'</tbody></table>'+
     '<div class="flex gap-2 pt-3 border-t border-gray-800">'+
-    '<button hx-get="/transactions/'+tx.tindex+'" hx-target="#modal" hx-swap="innerHTML" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg">Edit</button>'+
+    '<button onclick="document.getElementById(\'tx-view\').classList.add(\'hidden\');document.getElementById(\'tx-edit\').classList.remove(\'hidden\')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg">Edit</button>'+
     '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Close</button>'+
-    '</div></div></div></div></div>';
+    '</div></div></div>'+
+    '<div id="tx-edit" class="hidden">'+
+    '<div class="flex justify-between items-center p-4 border-b border-gray-800">'+
+    '<h2 class="text-lg font-semibold">Edit Transaction</h2>'+
+    '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="text-gray-400 hover:text-white text-xl">&times;</button>'+
+    '</div>'+
+    '<form hx-post="/transactions/'+tx.tindex+'" hx-target="#modal" hx-swap="innerHTML" class="p-4 space-y-3">'+
+    '<div><label class="text-xs text-gray-400">Date</label><input type="date" name="date" value="'+a(tx.tdate)+'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1"></div>'+
+    '<div><label class="text-xs text-gray-400">Description</label><input type="text" name="description" value="'+a(tx.tdescription)+'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1"></div>'+
+    '<div id="tags-list" class="space-y-2"><label class="text-xs text-gray-400">Tags</label>'+editTagsHtml+'</div>'+
+    '<button type="button" onclick="addTag()" class="text-blue-400 hover:text-blue-300 text-xs">+ Add tag</button>'+
+    '<div id="postings-list" class="space-y-2"><label class="text-xs text-gray-400">Postings</label>'+editPostingsHtml+'</div>'+
+    '<button type="button" onclick="addPosting()" class="text-blue-400 hover:text-blue-300 text-sm">+ Add posting</button>'+
+    '<div class="flex gap-2 pt-3 border-t border-gray-800">'+
+    '<button type="submit" class="flex-1 bg-green-600 hover:bg-green-500 text-white text-sm py-2 rounded-lg">Save</button>'+
+    '<button type="button" onclick="document.getElementById(\'tx-edit\').classList.add(\'hidden\');document.getElementById(\'tx-view\').classList.remove(\'hidden\')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Cancel</button>'+
+    '</div></form></div>'+
+    '</div></div>';
   htmx.process(modal);
+}
+function addTag(){
+  var list=document.getElementById('tags-list');
+  var n=list.querySelectorAll('.tag-row').length;
+  var div=document.createElement('div');
+  div.className='flex gap-2 tag-row';
+  div.innerHTML='<input type="text" name="tag_key_'+n+'" class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key"><input type="text" name="tag_value_'+n+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="value"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button>';
+  list.appendChild(div);
+}
+function addPosting(){
+  var list=document.getElementById('postings-list');
+  var n=list.querySelectorAll('.posting-row').length;
+  var div=document.createElement('div');
+  div.className='flex gap-2 posting-row';
+  div.innerHTML='<input type="text" name="account_'+n+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account"><input type="text" name="amount_'+n+'" class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button>';
+  list.appendChild(div);
 }
 </script>
 <script>
