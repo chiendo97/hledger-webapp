@@ -13,7 +13,7 @@
   <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
 {% endif %}
   <div class="bg-gray-900 border border-gray-800 rounded-lg p-3 cursor-pointer hover:border-gray-600 transition-colors"
-       data-tx="{{ tx.view_json | e }}" onclick="showTxDetail(this.dataset.tx)">
+       data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))">
     <div class="flex justify-between items-start mb-2">
       <span class="text-xs text-gray-500">{{ tx.tdate }}</span>
       <span class="text-xs text-gray-600">#{{ tx.tindex }}</span>

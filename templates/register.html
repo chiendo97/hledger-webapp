@@ -18,7 +18,7 @@
 {% if account %}
 <div id="page-content"
      hx-get="/register/partial?account={{ account | urlencode }}"
-     hx-trigger="load" hx-swap="innerHTML">
+     hx-trigger="load, refresh from:window" hx-swap="innerHTML">
   {% include "partials/skeleton.html" %}
 </div>
 {% else %}

@@ -13,6 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={darkMode:'class'}</script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body hx-boost="true" class="bg-gray-950 text-gray-100 min-h-screen" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
@@ -58,105 +59,126 @@
       <span>Register</span>
     </a>
   </nav>
-  <div id="modal"></div>
-<script>
-function showTxDetail(jsonStr){
-  var tx=JSON.parse(jsonStr);
-  var e=function(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;};
-  var a=function(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
-  var tagsHtml='';
-  for(var i=0;i<tx.tags.length;i++){
-    var t=tx.tags[i];
-    tagsHtml+='<tr class="border-b border-gray-800"><td class="text-gray-500 py-1.5 pr-4 font-mono whitespace-nowrap align-top">'+e(t.key)+'</td><td class="text-gray-300 py-1.5 text-right">'+e(t.value)+'</td></tr>';
-  }
-  var postingsHtml='';
-  for(var i=0;i<tx.tpostings.length;i++){
-    var p=tx.tpostings[i];
-    postingsHtml+='<tr class="border-b border-gray-800"><td class="text-gray-300 py-1.5 pr-2 break-words">'+e(p.paccount)+'</td>';
-    if(p.balance_assertion_display){
-      postingsHtml+='<td class="font-mono py-1.5 text-right whitespace-nowrap text-gray-500">= '+e(p.balance_assertion_display)+'</td>';
-    }else{
-      var c=p.negative?'text-red-400':'text-green-400';
-      postingsHtml+='<td class="font-mono py-1.5 text-right whitespace-nowrap '+c+'">'+e(p.amount_display)+'</td>';
-    }
-    postingsHtml+='</tr>';
-    if(p.tags&&p.tags.length){
-      for(var j=0;j<p.tags.length;j++){
-        var pt=p.tags[j];
-        postingsHtml+='<tr><td colspan="2" class="pl-4 py-0.5 text-xs text-gray-500"><span class="font-mono">'+e(pt.key)+'</span> '+e(pt.value)+'</td></tr>';
-      }
-    }
-  }
-  var editTagsHtml='';
-  for(var i=0;i<tx.tags.length;i++){
-    var t=tx.tags[i];
-    editTagsHtml+='<div class="flex gap-2 tag-row"><input type="text" name="tag_key_'+i+'" value="'+a(t.key)+'" class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key"><input type="text" name="tag_value_'+i+'" value="'+a(t.value)+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="value"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button></div>';
-  }
-  var editPostingsHtml='';
-  for(var i=0;i<tx.tpostings.length;i++){
-    var p=tx.tpostings[i];
-    editPostingsHtml+='<div class="flex gap-2 posting-row"><input type="text" name="account_'+i+'" value="'+a(p.paccount)+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account"><input type="text" name="amount_'+i+'" value="'+a(p.amount_display)+'" class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount">';
-    if(p.balance_assertion_display){
-      editPostingsHtml+='<input type="hidden" name="balance_assertion_'+i+'" value="'+a(p.balance_assertion_display)+'">';
-    }
-    editPostingsHtml+='<button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button></div>';
-  }
-  var modal=document.getElementById('modal');
-  modal.innerHTML=
-    '<div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onclick="if(event.target===this)document.getElementById(\'modal\').innerHTML=\'\'">'+
-    '<div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg lg:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">'+
-    '<div id="tx-view">'+
-    '<div class="flex justify-between items-center p-4 border-b border-gray-800">'+
-    '<h2 class="text-lg font-semibold">Transaction #'+tx.tindex+'</h2>'+
-    '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="text-gray-400 hover:text-white text-xl">&times;</button>'+
-    '</div>'+
-    '<div class="p-4 space-y-3">'+
-    '<table class="w-full text-sm"><tbody>'+
-    '<tr class="border-b border-gray-800"><td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Date</td><td class="text-gray-100 py-1.5 text-right">'+e(tx.tdate)+'</td></tr>'+
-    '<tr class="border-b border-gray-800"><td class="text-gray-400 py-1.5 pr-4 whitespace-nowrap align-top">Description</td><td class="text-gray-100 py-1.5 text-right break-all">'+e(tx.tdescription)+'</td></tr>'+
-    tagsHtml+
-    '</tbody></table>'+
-    '<table class="w-full text-sm"><tbody>'+postingsHtml+'</tbody></table>'+
-    '<div class="flex gap-2 pt-3 border-t border-gray-800">'+
-    '<button onclick="document.getElementById(\'tx-view\').classList.add(\'hidden\');document.getElementById(\'tx-edit\').classList.remove(\'hidden\')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg">Edit</button>'+
-    '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Close</button>'+
-    '</div></div></div>'+
-    '<div id="tx-edit" class="hidden">'+
-    '<div class="flex justify-between items-center p-4 border-b border-gray-800">'+
-    '<h2 class="text-lg font-semibold">Edit Transaction</h2>'+
-    '<button onclick="document.getElementById(\'modal\').innerHTML=\'\'" class="text-gray-400 hover:text-white text-xl">&times;</button>'+
-    '</div>'+
-    '<form hx-post="/transactions/'+tx.tindex+'" hx-target="#modal" hx-swap="innerHTML" class="p-4 space-y-3">'+
-    '<div><label class="text-xs text-gray-400">Date</label><input type="date" name="date" value="'+a(tx.tdate)+'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1"></div>'+
-    '<div><label class="text-xs text-gray-400">Description</label><input type="text" name="description" value="'+a(tx.tdescription)+'" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1"></div>'+
-    '<div id="tags-list" class="space-y-2"><label class="text-xs text-gray-400">Tags</label>'+editTagsHtml+'</div>'+
-    '<button type="button" onclick="addTag()" class="text-blue-400 hover:text-blue-300 text-xs">+ Add tag</button>'+
-    '<div id="postings-list" class="space-y-2"><label class="text-xs text-gray-400">Postings</label>'+editPostingsHtml+'</div>'+
-    '<button type="button" onclick="addPosting()" class="text-blue-400 hover:text-blue-300 text-sm">+ Add posting</button>'+
-    '<div class="flex gap-2 pt-3 border-t border-gray-800">'+
-    '<button type="submit" class="flex-1 bg-green-600 hover:bg-green-500 text-white text-sm py-2 rounded-lg">Save</button>'+
-    '<button type="button" onclick="document.getElementById(\'tx-edit\').classList.add(\'hidden\');document.getElementById(\'tx-view\').classList.remove(\'hidden\')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Cancel</button>'+
-    '</div></form></div>'+
-    '</div></div>';
-  htmx.process(modal);
-}
-function addTag(){
-  var list=document.getElementById('tags-list');
-  var n=list.querySelectorAll('.tag-row').length;
-  var div=document.createElement('div');
-  div.className='flex gap-2 tag-row';
-  div.innerHTML='<input type="text" name="tag_key_'+n+'" class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key"><input type="text" name="tag_value_'+n+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="value"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button>';
-  list.appendChild(div);
-}
-function addPosting(){
-  var list=document.getElementById('postings-list');
-  var n=list.querySelectorAll('.posting-row').length;
-  var div=document.createElement('div');
-  div.className='flex gap-2 posting-row';
-  div.innerHTML='<input type="text" name="account_'+n+'" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account"><input type="text" name="amount_'+n+'" class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-1">&times;</button>';
-  list.appendChild(div);
-}
-</script>
+  <!-- Modal (Alpine.js) -->
+  <div id="modal"
+       x-data="{ tx: null, editing: false, editTags: [], editPostings: [] }"
+       @show-tx.window="
+         tx = JSON.parse($event.detail);
+         editing = false;
+         editTags = tx.tags.map(t => ({key: t.key, value: t.value}));
+         editPostings = tx.tpostings.map(p => ({account: p.paccount, amount: p.amount_display, balance_assertion: p.balance_assertion_display}))
+       "
+       @close-modal.window="tx = null"
+       @keydown.escape.window="tx = null">
+    <template x-if="tx">
+      <div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70" @click.self="tx = null">
+        <div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg lg:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" @click.stop>
+
+          <!-- View mode -->
+          <div x-show="!editing">
+            <div class="flex justify-between items-center p-4 border-b border-gray-800">
+              <h2 class="text-lg font-semibold" x-text="'Transaction #' + tx.tindex"></h2>
+              <button @click="tx = null" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div>
+                <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
+                  <span class="text-gray-400 pr-4 whitespace-nowrap">Date</span>
+                  <span class="text-gray-100" x-text="tx.tdate"></span>
+                </div>
+                <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
+                  <span class="text-gray-400 pr-4 whitespace-nowrap">Description</span>
+                  <span class="text-gray-100 text-right break-all" x-text="tx.tdescription"></span>
+                </div>
+                <template x-for="(tag, i) in tx.tags" :key="i">
+                  <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
+                    <span class="text-gray-500 pr-4 font-mono whitespace-nowrap" x-text="tag.key"></span>
+                    <span class="text-gray-300 text-right" x-text="tag.value"></span>
+                  </div>
+                </template>
+              </div>
+              <div>
+                <template x-for="(p, i) in tx.tpostings" :key="i">
+                  <div>
+                    <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
+                      <span class="text-gray-300 pr-2 break-words" x-text="p.paccount"></span>
+                      <span x-show="p.balance_assertion_display" class="font-mono whitespace-nowrap text-gray-500" x-text="'= ' + (p.balance_assertion_display || '')"></span>
+                      <span x-show="!p.balance_assertion_display" class="font-mono whitespace-nowrap" :class="p.negative ? 'text-red-400' : 'text-green-400'" x-text="p.amount_display"></span>
+                    </div>
+                    <template x-for="(pt, j) in p.tags" :key="j">
+                      <div class="pl-4 py-0.5 text-xs text-gray-500">
+                        <span class="font-mono" x-text="pt.key"></span> <span x-text="pt.value"></span>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+              <div class="flex gap-2 pt-3 border-t border-gray-800">
+                <button @click="editing = true" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg">Edit</button>
+                <button @click="tx = null" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit mode -->
+          <div x-show="editing">
+            <div class="flex justify-between items-center p-4 border-b border-gray-800">
+              <h2 class="text-lg font-semibold">Edit Transaction</h2>
+              <button @click="tx = null" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <form :hx-post="'/transactions/' + tx.tindex" hx-swap="none"
+                  hx-on::after-request="if(event.detail.successful){window.dispatchEvent(new Event('close-modal'));window.dispatchEvent(new Event('refresh'))}"
+                  class="p-4 space-y-3">
+              <div>
+                <label class="text-xs text-gray-400">Date</label>
+                <input type="date" name="date" :value="tx.tdate"
+                       class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+              </div>
+              <div>
+                <label class="text-xs text-gray-400">Description</label>
+                <input type="text" name="description" :value="tx.tdescription"
+                       class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs text-gray-400">Tags</label>
+                <template x-for="(tag, i) in editTags" :key="i">
+                  <div class="flex gap-2">
+                    <input type="text" :name="'tag_key_' + i" x-model="tag.key"
+                           class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key">
+                    <input type="text" :name="'tag_value_' + i" x-model="tag.value"
+                           class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="value">
+                    <button type="button" @click="editTags.splice(i, 1)" class="text-red-400 hover:text-red-300 px-1">&times;</button>
+                  </div>
+                </template>
+              </div>
+              <button type="button" @click="editTags.push({key:'',value:''})" class="text-blue-400 hover:text-blue-300 text-xs">+ Add tag</button>
+              <div class="space-y-2">
+                <label class="text-xs text-gray-400">Postings</label>
+                <template x-for="(p, i) in editPostings" :key="i">
+                  <div class="flex gap-2">
+                    <input type="text" :name="'account_' + i" x-model="p.account"
+                           class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account">
+                    <input type="text" :name="'amount_' + i" x-model="p.amount"
+                           class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount">
+                    <template x-if="p.balance_assertion">
+                      <input type="hidden" :name="'balance_assertion_' + i" :value="p.balance_assertion">
+                    </template>
+                    <button type="button" @click="editPostings.splice(i, 1)" class="text-red-400 hover:text-red-300 px-1">&times;</button>
+                  </div>
+                </template>
+              </div>
+              <button type="button" @click="editPostings.push({account:'',amount:'',balance_assertion:''})" class="text-blue-400 hover:text-blue-300 text-sm">+ Add posting</button>
+              <div class="flex gap-2 pt-3 border-t border-gray-800">
+                <button type="submit" class="flex-1 bg-green-600 hover:bg-green-500 text-white text-sm py-2 rounded-lg">Save</button>
+                <button type="button" @click="editing = false" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm py-2 rounded-lg">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </template>
+  </div>
 <script>
 (function(){
   var bar=document.getElementById('loading-bar');
