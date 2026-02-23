@@ -234,11 +234,9 @@ async def register_view(account: str = "", month: str = "") -> Template:
 
 @get("/register/partial")
 async def register_partial(account: str = "") -> Template:
-    rows = await hledger.register(JOURNAL_FILE, account=account)
-    return Template(
-        "partials/reg_content.html",
-        context={"rows": rows, "account": account},
-    )
+    txs = await hledger.print_json(JOURNAL_FILE, query=account)
+    txs.reverse()
+    return Template("partials/tx_list.html", context={"txs": txs})
 
 
 # ── App ─────────────────────────────────────────────────────────────────
