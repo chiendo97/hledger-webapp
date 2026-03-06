@@ -1,40 +1,33 @@
-{% set ns = namespace(current_date='') %}
-{% for tx in txs %}
-{% if tx.tdate != ns.current_date %}
-  {% if ns.current_date %}
-  </div>
-  {% endif %}
-  {% set ns.current_date = tx.tdate %}
+{% for group in txs | groupby('tdate') | reverse %}
   <div class="flex items-center gap-3 {% if not loop.first %}mt-6{% endif %} mb-3">
     <div class="flex-1 border-t border-gray-600"></div>
-    <span class="text-sm font-medium text-gray-300 whitespace-nowrap">{{ tx.tdate }}</span>
+    <span class="text-sm font-medium text-gray-300 whitespace-nowrap">{{ group.grouper }}</span>
     <div class="flex-1 border-t border-gray-600"></div>
   </div>
   <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
-{% endif %}
-  <div class="bg-gray-900 border border-gray-800 rounded-lg p-3 cursor-pointer hover:border-gray-600 transition-colors"
-       data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))">
-    <div class="flex justify-between items-start mb-2">
-      <span class="text-xs text-gray-500">{{ tx.tdate }}</span>
-      <span class="text-xs text-gray-600">#{{ tx.tindex }}</span>
-    </div>
-    <div class="font-medium text-sm mb-2 line-clamp-2 break-words">{{ tx.tdescription }}</div>
-    <div class="space-y-1">
-      {% for p in tx.tpostings %}
-      <div class="flex justify-between text-xs">
-        <span class="text-gray-400 truncate mr-2">{{ p.paccount }}</span>
-        {% if p.balance_assertion_display %}
-        <span class="font-mono whitespace-nowrap text-gray-500">= {{ p.balance_assertion_display }}</span>
-        {% else %}
-        <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}</span>
-        {% endif %}
+    {% for tx in group.list %}
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-3 cursor-pointer hover:border-gray-600 transition-colors"
+         data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-xs text-gray-500">{{ tx.tdate }}</span>
+        <span class="text-xs text-gray-600">#{{ tx.tindex }}</span>
       </div>
-      {% endfor %}
+      <div class="font-medium text-sm mb-2 line-clamp-2 break-words">{{ tx.tdescription }}</div>
+      <div class="space-y-1">
+        {% for p in tx.tpostings %}
+        <div class="flex justify-between text-xs">
+          <span class="text-gray-400 truncate mr-2">{{ p.paccount }}</span>
+          {% if p.balance_assertion_display %}
+          <span class="font-mono whitespace-nowrap text-gray-500">= {{ p.balance_assertion_display }}</span>
+          {% else %}
+          <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
     </div>
+    {% endfor %}
   </div>
 {% else %}
-<p class="text-gray-500 text-center py-8">No transactions found.</p>
+  <p class="text-gray-500 text-center py-8">No transactions found.</p>
 {% endfor %}
-{% if txs %}
-</div>
-{% endif %}

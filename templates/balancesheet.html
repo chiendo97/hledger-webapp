@@ -4,6 +4,7 @@
 {% block header %}Balance Sheet{% endblock %}
 
 {% block content %}
+{% set _p = {'month': month, 'depth': depth, 'sort': sort} %}
 {% include "partials/month_picker.html" %}
 {% include "partials/depth_selector.html" %}
 {% include "partials/sort_toggle.html" %}

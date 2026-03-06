@@ -1,3 +1,20 @@
+/* Base input styling — use Tailwind utilities to override (e.g. rounded-lg, py-1) */
+@layer base {
+  .input {
+    background-color: rgb(31 41 55);
+    border: 1px solid rgb(55 65 81);
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: inherit;
+  }
+  .input:focus {
+    outline: none;
+    border-color: rgb(59 130 246);
+  }
+}
+
 /* Minimal overrides — Tailwind handles most styling */
 html { -webkit-tap-highlight-color: transparent; touch-action: manipulation; overscroll-behavior-y: contain; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }

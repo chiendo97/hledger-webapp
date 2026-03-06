@@ -4,6 +4,7 @@
 {% block header %}Budget{% endblock %}
 
 {% block content %}
+{% set _p = {'month': month} %}
 {% include "partials/month_picker.html" %}
 <div id="page-content"
      hx-get="/budget/partial?month={{ month }}"

@@ -1,0 +1,14 @@
+{% macro qs(params) -%}
+{%- set ns = namespace(parts=[]) -%}
+{%- for k, v in params.items() -%}
+  {%- if k not in kwargs and v is not none and v|string != '' -%}
+    {%- set ns.parts = ns.parts + [k ~ '=' ~ (v|string|urlencode)] -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- for k, v in kwargs.items() -%}
+  {%- if v is not none and v|string != '' -%}
+    {%- set ns.parts = ns.parts + [k ~ '=' ~ (v|string|urlencode)] -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if ns.parts %}?{{ ns.parts | join('&') }}{% endif -%}
+{%- endmacro %}

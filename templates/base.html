@@ -138,21 +138,21 @@
               <div>
                 <label class="text-xs text-gray-400">Date</label>
                 <input type="date" name="date" :value="tx.tdate"
-                       class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+                       class="input w-full mt-1">
               </div>
               <div>
                 <label class="text-xs text-gray-400">Description</label>
                 <input type="text" name="description" :value="tx.tdescription"
-                       class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm mt-1">
+                       class="input w-full mt-1">
               </div>
               <div class="space-y-2">
                 <label class="text-xs text-gray-400">Tags</label>
                 <template x-for="(tag, i) in editTags" :key="i">
                   <div class="flex gap-2">
                     <input type="text" :name="'tag_key_' + i" x-model="tag.key"
-                           class="w-1/3 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="key">
+                           class="input w-1/3 font-mono" placeholder="key">
                     <input type="text" :name="'tag_value_' + i" x-model="tag.value"
-                           class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="value">
+                           class="input flex-1" placeholder="value">
                     <button type="button" @click="editTags.splice(i, 1)" class="text-red-400 hover:text-red-300 px-1">&times;</button>
                   </div>
                 </template>
@@ -163,9 +163,9 @@
                 <template x-for="(p, i) in editPostings" :key="i">
                   <div class="flex gap-2">
                     <input type="text" :name="'account_' + i" x-model="p.account"
-                           class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" placeholder="Account">
+                           class="input flex-1" placeholder="Account">
                     <input type="text" :name="'amount_' + i" x-model="p.amount"
-                           class="w-32 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm font-mono" placeholder="Amount">
+                           class="input w-32 font-mono" placeholder="Amount">
                     <template x-if="p.balance_assertion">
                       <input type="hidden" :name="'balance_assertion_' + i" :value="p.balance_assertion">
                     </template>
