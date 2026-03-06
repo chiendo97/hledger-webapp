@@ -121,6 +121,14 @@ class CompoundReport(BaseModel):
     grand_total_items: list[str] = Field(default_factory=list)
 
 
+class BudgetRow(BaseModel):
+    name: str
+    actual: str
+    budget: str
+    percent: int = 0
+    is_expense: bool = True
+
+
 # ── Raw JSON models (internal parsing) ─────────────────────────────────
 
 
@@ -256,6 +264,29 @@ def _abs_total(amounts: list[Amount]) -> int:
         )
         for a in amounts
     )
+
+
+def _parse_budget_amount(s: str) -> int:
+    """Parse a budget CSV amount string, extracting the VND value.
+
+    Handles multi-currency strings like '0.5c, 2,539.8 sgd, 107,860,080.0 vnd'
+    by finding the VND component.
+    """
+    s = s.strip()
+    if not s or s == "0":
+        return 0
+    # Multi-currency: find the VND component
+    if " vnd" in s:
+        for part in s.split(", "):
+            part = part.strip()
+            if part.endswith(" vnd"):
+                num_str = part[: -len(" vnd")].replace(",", "")
+                return int(float(num_str))
+    # Single amount without commodity
+    try:
+        return int(float(s.replace(",", "")))
+    except ValueError:
+        return 0
 
 
 def _normalize_amount(amount: str) -> str:
@@ -569,6 +600,53 @@ async def update_transaction(
     file_lines[start_line - 1 : end_line - 1] = [new_block]
     _ = path.write_text("".join(file_lines))
     _invalidate_cache()
+
+
+async def budget(
+    file: str,
+    begin: str = "",
+    end: str = "",
+) -> list[BudgetRow]:
+    import csv as _csv
+    import io as _io
+
+    args = ["hledger", "-f", file, "bal", "--budget", "-O", "csv"]
+    if begin:
+        args += ["-b", begin]
+    if end:
+        args += ["-e", end]
+    raw_str = await _run(args)
+    reader = _csv.reader(_io.StringIO(raw_str))
+    next(reader)  # skip header
+    rows: list[BudgetRow] = []
+    for csv_row in reader:
+        if len(csv_row) < 3:
+            continue
+        name, actual_str, budget_str = csv_row[0], csv_row[1], csv_row[2]
+        if name.startswith(("Total", "asset:")):
+            continue
+        actual_val = _parse_budget_amount(actual_str)
+        budget_val = _parse_budget_amount(budget_str)
+        percent = round(actual_val / budget_val * 100) if budget_val != 0 else 0
+        is_expense = name.startswith("expense:")
+        if is_expense:
+            actual_fmt = f"{actual_val:,} vnd" if actual_val else "0 vnd"
+            budget_fmt = f"{budget_val:,} vnd" if budget_val else "0 vnd"
+        else:
+            actual_fmt = f"{abs(actual_val):,} vnd" if actual_val else "0 vnd"
+            budget_fmt = f"{abs(budget_val):,} vnd" if budget_val else "0 vnd"
+        rows.append(BudgetRow(
+            name=name,
+            actual=actual_fmt,
+            budget=budget_fmt,
+            percent=percent,
+            is_expense=is_expense,
+        ))
+    # Remove parent accounts that have children (keep only leaf budget rows)
+    names = {r.name for r in rows}
+    rows = [r for r in rows if not any(n.startswith(r.name + ":") for n in names)]
+    rows.sort(key=lambda r: (not r.is_expense, -r.percent))
+    return rows
 
 
 _accounts_cache: tuple[float, list[str]] = (0.0, [])

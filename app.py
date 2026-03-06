@@ -208,6 +208,19 @@ async def balancesheet_partial(
     )
 
 
+@get("/budget")
+async def budget_view(month: str = "") -> Template:
+    mr = _month_range(month)
+    return Template("budget.html", context={**mr})
+
+
+@get("/budget/partial")
+async def budget_partial(month: str = "") -> Template:
+    mr = _month_range(month)
+    rows = await hledger.budget(JOURNAL_FILE, begin=mr["begin"], end=mr["end"])
+    return Template("partials/budget_content.html", context={"rows": rows, "month": month})
+
+
 @get("/register")
 async def register_view(account: str = "", month: str = "") -> Template:
     accts = await hledger.accounts(JOURNAL_FILE)
@@ -240,6 +253,8 @@ app = Litestar(
         incomestatement_partial,
         balancesheet,
         balancesheet_partial,
+        budget_view,
+        budget_partial,
         register_view,
         register_partial,
         create_static_files_router(path="/static", directories=[STATIC_DIR]),
