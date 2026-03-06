@@ -11,13 +11,13 @@
   <input type="hidden" name="sort" value="{{ sort }}">
   <input type="text" name="q" value="{{ q }}" placeholder="Filter accounts..."
          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-         hx-get="/balances/partial" hx-target="#page-content" hx-trigger="keyup changed delay:300ms" hx-swap="innerHTML"
+         hx-get="/balances/partial" hx-target="#page-content" hx-trigger="keyup changed delay:300ms"
          hx-include="[name=depth],[name=sort]">
 </form>
 
 <div id="page-content"
      hx-get="/balances/partial?q={{ q | urlencode }}&depth={{ depth }}&sort={{ sort }}&month={{ month }}"
-     hx-trigger="load" hx-swap="innerHTML">
+     hx-trigger="load, refresh from:window">
   {% include "partials/skeleton.html" %}
 </div>
 {% endblock %}

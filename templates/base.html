@@ -128,7 +128,8 @@
             </div>
             <form @submit.prevent="
                     fetch('/transactions/' + tx.tindex, { method: 'POST', body: new FormData($el) })
-                      .then(r => { if (r.ok) { tx = null; window.dispatchEvent(new Event('refresh')) } })
+                      .then(r => { if (r.ok) { tx = null; window.dispatchEvent(new Event('refresh')); } else { alert('Save failed (' + r.status + ')'); } })
+                      .catch(() => alert('Network error'))
                   " class="p-4 space-y-3">
               <div>
                 <label class="text-xs text-gray-400">Date</label>
@@ -188,6 +189,9 @@
     bar.className='done';
     setTimeout(function(){bar.className='';},300);
   });
+  document.addEventListener('htmx:responseError', function(e){
+    if(e.detail.target) e.detail.target.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load. Try refreshing.</p>';
+  });
 })();
 </script>
 <script>
@@ -224,12 +228,11 @@
   document.addEventListener('touchend', function(){
     if(!pulling) return;
     pulling = false;
+    indicator.style.transform = 'translateY(-100%)';
+    arrow.style.transform = '';
+    text.textContent = 'Pull to refresh';
     if(distance >= threshold){
-      text.textContent = 'Refreshing...';
-      arrow.innerHTML = '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31" stroke-dashoffset="10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/></circle>';
-      location.reload();
-    } else {
-      indicator.style.transform = 'translateY(-100%)';
+      window.dispatchEvent(new Event('refresh'));
     }
   });
 })();

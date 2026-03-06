@@ -9,7 +9,7 @@
 {% include "partials/sort_toggle.html" %}
 <div id="page-content"
      hx-get="/incomestatement/partial?depth={{ depth }}&month={{ month }}&sort={{ sort }}"
-     hx-trigger="load" hx-swap="innerHTML">
+     hx-trigger="load, refresh from:window">
   {% include "partials/skeleton.html" %}
 </div>
 {% endblock %}

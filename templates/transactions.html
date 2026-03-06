@@ -15,7 +15,7 @@
 
 <!-- Add button -->
 <div class="mb-4">
-  <button hx-get="/transactions/new" hx-target="#tx-form-container" hx-swap="innerHTML"
+  <button hx-get="/transactions/new" hx-target="#tx-form-container" hx-disabled-elt="this"
           class="w-full bg-green-700 hover:bg-green-600 rounded-lg px-4 py-2 text-sm font-medium">+ Add Transaction</button>
 </div>
 <div id="tx-form-container"></div>
@@ -23,7 +23,7 @@
 <!-- Transaction list (lazy loaded) -->
 <div id="tx-list"
      hx-get="/transactions/partial?month={{ month }}&q={{ q | urlencode }}"
-     hx-trigger="load, refresh from:window" hx-swap="innerHTML">
+     hx-trigger="load, refresh from:window">
   {% include "partials/skeleton.html" %}
 </div>
 {% endblock %}
