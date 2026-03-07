@@ -10,11 +10,11 @@
   <meta name="theme-color" content="#111827">
   <link rel="manifest" href="/static/manifest.json">
   <title>{% block title %}hledger{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={darkMode:'class'}</script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body hx-boost="true" class="bg-gray-950 text-gray-100 min-h-screen" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
   <div id="loading-bar"></div>
