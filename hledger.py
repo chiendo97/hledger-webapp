@@ -63,7 +63,19 @@ class Transaction(BaseModel):
 
     @property
     def view_json(self) -> str:
+        import hashlib
         import json
+
+        colors = [
+            "#e06c75", "#61afef", "#98c379", "#e5c07b", "#c678dd", "#56b6c2",
+            "#d19a66", "#be5046", "#7ec8e3", "#c3e88d", "#f78c6c", "#89ddff",
+            "#ffcb6b", "#f07178", "#82aaff", "#c792ea", "#4ec9b0", "#d7ba7d",
+            "#b392f0", "#85e89d", "#ffab70", "#79b8ff", "#e2c08d", "#ff7b72",
+        ]
+
+        def _color(account: str) -> str:
+            h = int(hashlib.md5(account.encode()).hexdigest(), 16)  # noqa: S324
+            return colors[h % len(colors)]
 
         return json.dumps(
             {
@@ -76,6 +88,7 @@ class Transaction(BaseModel):
                         "paccount": p.paccount,
                         "amount_display": p.amount_display,
                         "balance_assertion_display": p.balance_assertion_display,
+                        "account_color": _color(p.paccount),
                         "negative": (
                             p.pamount[0].aquantity.floatingPoint < 0
                             if p.pamount

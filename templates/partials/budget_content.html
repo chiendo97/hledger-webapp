@@ -7,7 +7,7 @@
   {% for row in expenses %}
   <div class="bg-gray-900 border border-gray-800 rounded-lg p-3">
     <div class="flex justify-between items-baseline mb-1.5">
-      <span class="text-sm text-gray-200 truncate mr-2">{{ row.name }}</span>
+      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-gray-200 truncate mr-2 hover:text-blue-400">{{ row.name }}</a>
       <span class="text-sm font-mono whitespace-nowrap {% if row.percent > 100 %}text-red-400{% elif row.percent >= 80 %}text-yellow-400{% else %}text-green-400{% endif %}">{{ row.percent }}%</span>
     </div>
     <div class="w-full bg-gray-800 rounded-full h-2 mb-1.5">
@@ -29,7 +29,7 @@
   {% for row in revenues %}
   <div class="bg-gray-900 border border-gray-800 rounded-lg p-3">
     <div class="flex justify-between items-baseline mb-1.5">
-      <span class="text-sm text-gray-200 truncate mr-2">{{ row.name }}</span>
+      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-gray-200 truncate mr-2 hover:text-blue-400">{{ row.name }}</a>
       <span class="text-sm font-mono whitespace-nowrap {% if row.percent >= 80 %}text-green-400{% elif row.percent >= 50 %}text-yellow-400{% else %}text-gray-400{% endif %}">{{ row.percent }}%</span>
     </div>
     <div class="w-full bg-gray-800 rounded-full h-2 mb-1.5">

@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 </head>
-<body hx-boost="true" class="bg-gray-950 text-gray-100 min-h-screen" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
+<body hx-boost="true" class="bg-gray-950 text-gray-100 min-h-screen font-mono" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
   <div id="loading-bar"></div>
   <!-- Top bar -->
   <header class="sticky top-0 z-40 bg-gray-900 border-b border-gray-800 px-4 py-3">
@@ -105,7 +105,7 @@
                 <template x-for="(p, i) in tx.tpostings" :key="i">
                   <div>
                     <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
-                      <span class="text-gray-300 pr-2 break-words" x-text="p.paccount"></span>
+                      <span class="pr-2 break-words" :style="'color:' + p.account_color" x-text="p.paccount"></span>
                       <span x-show="p.balance_assertion_display" class="font-mono whitespace-nowrap text-gray-500" x-text="'= ' + (p.balance_assertion_display || '')"></span>
                       <span x-show="!p.balance_assertion_display" class="font-mono whitespace-nowrap" :class="p.negative ? 'text-red-400' : 'text-green-400'" x-text="p.amount_display"></span>
                     </div>

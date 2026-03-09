@@ -1,5 +1,6 @@
 """hledger web app — Litestar + Jinja2 + HTMX."""
 
+import hashlib
 import os
 from datetime import date as dt_date
 from pathlib import Path
@@ -21,6 +22,40 @@ JOURNAL_FILE = os.environ.get(
 
 TEMPLATES_DIR = str(Path(__file__).resolve().parent / "templates")
 STATIC_DIR = str(Path(__file__).resolve().parent / "static")
+
+# Fixed palette — maximally distinct colors readable on dark backgrounds
+_ACCOUNT_COLORS = [
+    "#e06c75",  # red
+    "#61afef",  # blue
+    "#98c379",  # green
+    "#e5c07b",  # yellow
+    "#c678dd",  # purple
+    "#56b6c2",  # cyan
+    "#d19a66",  # orange
+    "#be5046",  # rust
+    "#7ec8e3",  # sky
+    "#c3e88d",  # lime
+    "#f78c6c",  # coral
+    "#89ddff",  # ice blue
+    "#ffcb6b",  # gold
+    "#f07178",  # salmon
+    "#82aaff",  # periwinkle
+    "#c792ea",  # lavender
+    "#4ec9b0",  # mint
+    "#d7ba7d",  # tan
+    "#b392f0",  # violet
+    "#85e89d",  # pastel green
+    "#ffab70",  # peach
+    "#79b8ff",  # cornflower
+    "#e2c08d",  # wheat
+    "#ff7b72",  # light red
+]
+
+
+def _account_color(account: str) -> str:
+    """Deterministic color for an account name."""
+    h = int(hashlib.md5(account.encode()).hexdigest(), 16)  # noqa: S324
+    return _ACCOUNT_COLORS[h % len(_ACCOUNT_COLORS)]
 
 
 def _month_range(month: str) -> dict[str, str]:
@@ -264,6 +299,10 @@ app = Litestar(
         engine=JinjaTemplateEngine,
     ),
 )
+
+# Register Jinja2 globals
+engine = app.template_engine  # pyright: ignore[reportAny]
+engine.engine.globals["account_color"] = _account_color  # pyright: ignore[reportAny, reportUnknownMemberType]
 
 if __name__ == "__main__":
     import uvicorn

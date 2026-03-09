@@ -12,11 +12,11 @@
         <span class="text-xs text-gray-500">{{ tx.tdate }}{% for t in tx.tags %}{% if t.key == 'time' %} {{ t.value }}{% endif %}{% endfor %}</span>
         <span class="text-xs text-gray-600">#{{ tx.tindex }}</span>
       </div>
-      <div class="font-medium text-sm mb-2 line-clamp-2 break-words">{{ tx.tdescription }}</div>
+      <div class="font-medium text-sm mb-2 line-clamp-2 break-words text-gray-300">{{ tx.tdescription }}</div>
       <div class="space-y-1">
         {% for p in tx.tpostings %}
         <div class="flex justify-between text-xs">
-          <span class="text-gray-400 truncate mr-2">{{ p.paccount }}</span>
+          <span class="truncate mr-2" style="color: {{ account_color(p.paccount) }}">{{ p.paccount }}</span>
           {% if p.balance_assertion_display %}
           <span class="font-mono whitespace-nowrap text-gray-500">= {{ p.balance_assertion_display }}</span>
           {% else %}
