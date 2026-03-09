@@ -14,12 +14,11 @@
   <button type="submit" class="bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 text-sm font-medium">Go</button>
 </form>
 
-<!-- Add button -->
+<!-- Add button (disabled) -->
 <div class="mb-4">
-  <button hx-get="/transactions/new" hx-target="#tx-form-container" hx-disabled-elt="this"
-          class="w-full bg-green-700 hover:bg-green-600 rounded-lg px-4 py-2 text-sm font-medium">+ Add Transaction</button>
+  <button disabled
+          class="w-full bg-gray-700 rounded-lg px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed">+ Add Transaction</button>
 </div>
-<div id="tx-form-container"></div>
 
 <!-- Transaction list (lazy loaded) -->
 <div id="tx-list"
