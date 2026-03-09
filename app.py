@@ -275,6 +275,7 @@ async def register_partial(account: str = "") -> Template:
 # ── App ─────────────────────────────────────────────────────────────────
 
 app = Litestar(
+    debug=True,
     route_handlers=[
         index,
         transactions,
