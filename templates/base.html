@@ -88,7 +88,7 @@
               <div>
                 <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
                   <span class="text-gray-400 pr-4 whitespace-nowrap">Date</span>
-                  <span class="text-gray-100" x-text="tx.tdate"></span>
+                  <span class="text-gray-100" x-text="tx.tdate + ((tx.tags.find(t => t.key === 'time') || {}).value ? ' ' + tx.tags.find(t => t.key === 'time').value : '')"></span>
                 </div>
                 <div class="flex justify-between border-b border-gray-800 py-1.5 text-sm">
                   <span class="text-gray-400 pr-4 whitespace-nowrap">Description</span>
