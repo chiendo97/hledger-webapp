@@ -11,18 +11,18 @@
   <input type="hidden" name="month" value="{{ month }}">
   <input type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
          class="input rounded-lg flex-1">
+  <select name="source" class="input rounded-lg text-sm" onchange="this.form.submit()">
+    <option value="">All sources</option>
+    {% for s in sources %}
+    <option value="{{ s }}" {% if s == source %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
   <button type="submit" class="bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 text-sm font-medium">Go</button>
 </form>
 
-<!-- Add button (disabled) -->
-<div class="mb-4">
-  <button disabled
-          class="w-full bg-gray-700 rounded-lg px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed">+ Add Transaction</button>
-</div>
-
 <!-- Transaction list (lazy loaded) -->
 <div id="tx-list"
-     hx-get="/transactions/partial?month={{ month }}&q={{ q | urlencode }}"
+     hx-get="/transactions/partial?month={{ month }}&q={{ q | urlencode }}&source={{ source | urlencode }}"
      hx-trigger="load, refresh from:window">
   {% include "partials/skeleton.html" %}
 </div>

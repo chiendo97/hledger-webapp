@@ -662,6 +662,16 @@ async def budget(
     return rows
 
 
+async def sources(file: str) -> list[str]:
+    """Return sorted unique source file basenames from all transactions."""
+    txs = await _print_all(file)
+    names: set[str] = set()
+    for tx in txs:
+        if tx.tsourcepos and tx.tsourcepos[0].sourceName:
+            names.add(Path(tx.tsourcepos[0].sourceName).name)
+    return sorted(names)
+
+
 _accounts_cache: tuple[float, list[str]] = (0.0, [])
 _ACCOUNTS_TTL = 60  # seconds
 
