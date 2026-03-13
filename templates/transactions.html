@@ -4,7 +4,7 @@
 {% block header %}Transactions{% endblock %}
 
 {% block content %}
-{% set _p = {'month': month, 'q': q} %}
+{% set _p = {'month': month, 'q': q, 'source': source} %}
 {% include "partials/month_picker.html" %}
 <!-- Search / Filter -->
 <form action="/transactions" method="get" class="flex gap-2 mb-4">
