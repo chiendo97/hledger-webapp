@@ -2,7 +2,7 @@
 
 ## Goal
 
-Migrate from Tailwind CSS CDN to Tailwind v4 standalone CLI with a single CSS file (`static/style.css`) controlling all design tokens and component classes. Restyle the entire app by editing one file. No Node.js dependency.
+Migrate from Tailwind CSS CDN to Tailwind v4 standalone CLI with a single CSS input file (`style.css` at project root) controlling all design tokens and component classes. Restyle the entire app by editing one file. No Node.js dependency.
 
 ## Decision
 
@@ -24,13 +24,16 @@ Install via `uv` as a dependency group in `pyproject.toml`:
 build = ["pytailwindcss"]
 ```
 
-For Docker, `pytailwindcss` must be available at build time, so include it as a regular dependency or install the build group in the Dockerfile.
+The `pytailwindcss` package version pins the Tailwind binary version, ensuring reproducible builds. On first run, it downloads the correct standalone binary for the current platform. This requires internet access during `docker build` and local dev setup.
 
 ### Dev workflow
 
 ```bash
+# First time after clone (dist.css is gitignored):
+uv run --group build tailwindcss -i style.css -o static/dist.css
+
 # Terminal 1: CSS watcher
-uv run tailwindcss -i static/style.css -o static/dist.css --watch
+uv run --group build tailwindcss -i style.css -o static/dist.css --watch
 
 # Terminal 2: Dev server
 uv run python app.py
@@ -40,6 +43,7 @@ uv run python app.py
 
 Replace:
 ```html
+<link rel="stylesheet" href="/static/style.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={darkMode:'class'}</script>
 ```
@@ -49,7 +53,7 @@ With:
 <link rel="stylesheet" href="/static/dist.css">
 ```
 
-Remove `class="dark"` from `<html>` — the app is dark-only, tokens define the palette directly without `dark:` variants.
+Remove `class="dark"` from `<html>` — the app is dark-only, tokens define the palette directly without `dark:` variants. Confirmed: no `dark:` prefixed classes exist in any template.
 
 ### Dockerfile
 
@@ -67,14 +71,15 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen
+RUN uv sync --no-dev --group build --frozen
 
 COPY app.py hledger.py ./
 COPY templates/ templates/
 COPY static/ static/
+COPY style.css ./
 
-# Build CSS — pytailwindcss downloads the standalone binary
-RUN uv run tailwindcss -i static/style.css -o static/dist.css --minify
+# Build CSS — pytailwindcss downloads the standalone binary (requires internet)
+RUN uv run tailwindcss -i style.css -o static/dist.css --minify
 
 RUN groupadd --gid 1000 appuser && \
     useradd --create-home --uid 1000 --gid 1000 appuser
@@ -93,9 +98,19 @@ CMD ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "
 static/dist.css
 ```
 
+## CSS Input File Location
+
+The Tailwind input file lives at `style.css` in the project root (not inside `static/`). This avoids Litestar's static file serving exposing the raw unprocessed CSS with `@import`/`@theme` directives to browsers. Only the compiled `static/dist.css` is served.
+
+## Content Detection
+
+Tailwind v4 automatically scans the working directory for source files when it sees `@import "tailwindcss"`. It will find `.html` files in `templates/` and `templates/partials/`. Jinja2 syntax (`{{ }}`, `{% %}`) does not interfere with class detection.
+
+One Alpine.js dynamic class binding exists in `base.html` (`:class="p.negative ? 'text-red-400' : 'text-green-400'"`). During Phase 2, this becomes `text-negative`/`text-positive`. Tailwind's scanner handles string literals inside `:class` bindings correctly.
+
 ## Theme Tokens (`@theme`)
 
-All design tokens live in `static/style.css` under `@theme`:
+All design tokens live in `style.css` (project root) under `@theme`:
 
 ```css
 @import "tailwindcss";
@@ -188,7 +203,7 @@ All design tokens live in `static/style.css` under `@theme`:
 
 ## Component Classes (`@apply`)
 
-Defined in `static/style.css` after the `@theme` block:
+Defined in `style.css` after the `@theme` block:
 
 ```css
 .card {
@@ -200,7 +215,7 @@ Defined in `static/style.css` after the `@theme` block:
 }
 
 .input {
-  @apply bg-surface-raised border border-border-input rounded-lg px-3 py-2 text-sm text-text focus:border-accent-text focus:outline-none;
+  @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-sm text-text focus:border-accent-text focus:outline-none;
 }
 
 .chip {
@@ -235,7 +250,7 @@ Defined in `static/style.css` after the `@theme` block:
 
 ## Existing CSS to preserve
 
-The current `static/style.css` contains rules that must be carried forward below the `@theme` and component class blocks:
+The current `static/style.css` contains rules that must be carried forward into the new `style.css` below the `@theme` and component class blocks:
 
 - Loading bar animation (`#loading-bar`, `@keyframes load-progress`) — update `#3b82f6` to `var(--color-accent-light)`
 - iOS safe-area insets (header, nav, body padding)
@@ -248,18 +263,23 @@ The existing `.input` class gets replaced by the new `@apply`-based version.
 
 ### Phase 1 — Tooling switch
 
-1. Add `pytailwindcss` to `pyproject.toml` as a dependency group
-2. Rewrite `static/style.css` with `@import "tailwindcss"`, `@theme`, component classes, and preserved existing CSS
-3. Update `base.html`: replace CDN `<script>` tags with `<link rel="stylesheet" href="/static/dist.css">`, remove `class="dark"` from `<html>`
-4. Update `Dockerfile` with CSS build `RUN` line
-5. Add `static/dist.css` to `.gitignore`
-6. Verify the app renders identically
+1. Add `pytailwindcss` to `pyproject.toml` as a `build` dependency group
+2. Create `style.css` at project root with `@import "tailwindcss"`, `@theme`, component classes, and preserved existing CSS from `static/style.css`
+3. Remove old `static/style.css` (its contents are now in root `style.css`)
+4. Update `base.html`: replace CDN `<script>` tags and old stylesheet link with `<link rel="stylesheet" href="/static/dist.css">`, remove `class="dark"` from `<html>`
+5. Update `Dockerfile` with `uv sync --no-dev --group build --frozen` and CSS build `RUN` line
+6. Add `static/dist.css` to `.gitignore`
+7. Verify the app renders identically
 
 ### Phase 2 — Template migration
 
 1. Replace hardcoded color classes with semantic tokens across all templates
 2. Replace repeated class combos with component classes
 3. Verify each template after migration
+
+## CI/CD
+
+No changes needed to `.github/workflows/docker.yml`. The Docker build already has internet access (required for `pytailwindcss` to download the standalone binary on first run). The binary is cached in the Docker layer after the first build.
 
 ## What stays the same
 
