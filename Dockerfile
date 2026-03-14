@@ -12,12 +12,16 @@ WORKDIR /app
 
 # Install dependencies (cached layer)
 COPY pyproject.toml uv.lock ./
-RUN uv sync --no-dev --frozen
+RUN uv sync --no-dev --group build --frozen
 
 # Copy application code
 COPY app.py hledger.py ./
 COPY templates/ templates/
 COPY static/ static/
+COPY style.css ./
+
+# Build CSS — first invocation downloads the standalone binary (requires internet)
+RUN uv run --group build tailwindcss -i style.css -o static/dist.css --minify
 
 RUN groupadd --gid 1000 appuser && \
     useradd --create-home --uid 1000 --gid 1000 appuser
