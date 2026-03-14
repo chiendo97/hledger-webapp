@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Tailwind compiled output
+static/dist.css

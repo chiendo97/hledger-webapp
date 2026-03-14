@@ -17,3 +17,6 @@ dev = [
     "basedpyright>=1.38.0",
     "ruff>=0.15.1",
 ]
+build = [
+    "pytailwindcss",
+]
