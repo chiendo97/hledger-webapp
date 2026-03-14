@@ -38,7 +38,7 @@
     <div class="bg-surface-raised border {% if row.percent > 100 %}border-negative/30{% else %}border-border{% endif %} rounded-lg p-3">
       <div class="flex justify-between items-baseline mb-1.5">
         <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
-        <span class="font-mono font-bold whitespace-nowrap {% if row.percent > 100 %}text-lg {{ bar_colors.over }}{% elif row.percent >= 80 %}text-base {{ bar_colors.warn }}{% else %}text-sm {{ bar_colors.normal }}{% endif %}">{{ row.percent }}%</span>
+        <span class="font-mono font-bold whitespace-nowrap text-sm {% if row.percent > 100 %}{{ bar_colors.over }}{% elif row.percent >= 80 %}{{ bar_colors.warn }}{% else %}{{ bar_colors.normal }}{% endif %}">{{ row.percent }}%</span>
       </div>
       <div class="w-full bg-surface-inset rounded-full h-2.5 mb-1.5">
         <div class="h-2.5 rounded-full {% if row.percent > 100 %}{{ bar_colors.bar_over }}{% elif row.percent >= 80 %}{{ bar_colors.bar_warn }}{% else %}{{ bar_colors.bar_normal }}{% endif %}"

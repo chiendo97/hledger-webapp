@@ -131,3 +131,17 @@ body {
   50% { width: 70%; }
   100% { width: 90%; }
 }
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  #loading-bar.active {
+    animation: none;
+    width: 90%;
+  }
+  #loading-bar.done {
+    transition: none;
+  }
+  .skeleton {
+    animation: none;
+  }
+}

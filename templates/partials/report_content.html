@@ -2,9 +2,9 @@
 {% if report.grand_total_items %}
 <div class="border border-border rounded-lg mb-6 overflow-hidden">
   <div class="px-4 py-4 text-center">
-    <div class="text-xs text-text-faint uppercase tracking-widest mb-3">Net</div>
+    <div class="text-xs text-text-faint uppercase tracking-widest mb-2">Net</div>
     {% for item in report.grand_total_items %}
-    <div class="font-mono text-3xl font-bold tracking-tight {% if item.startswith('-') %}text-negative{% else %}text-positive{% endif %}">{{ item }}</div>
+    <div class="font-mono tracking-tight {% if report.grand_total_items|length > 1 %}text-xl font-semibold{% else %}text-3xl font-bold{% endif %} {% if item.startswith('-') %}text-negative{% else %}text-positive{% endif %}">{{ item }}</div>
     {% endfor %}
   </div>
   {# Revenue vs Expenses breakdown bar #}
@@ -41,8 +41,8 @@
     {% for row in sub.rows %}
     <a href="/register?account={{ row.name }}{% if month %}&month={{ month }}{% endif %}"
        class="flex border-b border-border hover:bg-surface-raised/50 py-1.5 {% if row.depth == 0 %}font-medium{% endif %}">
-      <div class="{% if row.depth == 0 %}w-1/2 text-text-heading{% else %}w-1/2 text-text-muted{% endif %} pr-2 truncate" style="padding-left: {{ row.depth * 16 }}px">{{ row.name }}</div>
-      <div class="w-1/2 pl-2 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis {% if row.depth == 0 %}text-base{% else %}text-sm{% endif %}">
+      <div class="w-3/5 min-w-0 pr-2 truncate {% if row.depth == 0 %}text-text-heading{% else %}text-text-muted{% endif %}" style="padding-left: {{ row.depth * 16 }}px">{{ row.name }}</div>
+      <div class="w-2/5 pl-2 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis">
         {% if row.amount_items|length > 1 %}
           {% for item in row.amount_items %}
           <div class="{% if item.startswith('-') %}text-negative{% else %}text-positive{% endif %}">{{ item }}</div>
@@ -54,8 +54,8 @@
     </a>
     {% endfor %}
     <div class="flex py-2 border-t-2 border-border-hover">
-      <div class="w-1/2 pr-2 font-bold text-text-heading text-sm">Total</div>
-      <div class="w-1/2 pl-2 font-mono font-bold text-right whitespace-nowrap text-text text-base">
+      <div class="w-3/5 pr-2 font-bold text-text-heading">Total</div>
+      <div class="w-2/5 pl-2 font-mono font-bold text-right whitespace-nowrap text-text">
         {% if sub.total_items|length > 1 %}
           {% for item in sub.total_items %}
           <div>{{ item }}</div>
@@ -74,8 +74,8 @@
     <div class="flex-1 border-t border-border"></div>
   </div>
   <div class="flex py-2 border-t-2 border-border-hover text-sm">
-    <div class="w-1/2 pr-2 font-bold text-text-heading">Total</div>
-    <div class="w-1/2 pl-2 font-mono font-bold text-right whitespace-nowrap text-text">{{ sub.total }}</div>
+    <div class="w-3/5 pr-2 font-bold text-text-heading">Total</div>
+    <div class="w-2/5 pl-2 font-mono font-bold text-right whitespace-nowrap text-text">{{ sub.total }}</div>
   </div>
 </div>
 {% else %}
@@ -85,8 +85,8 @@
     <div class="flex-1 border-t border-border"></div>
   </div>
   <div class="flex py-2 text-sm">
-    <div class="w-1/2 pr-2 text-text-faint">Total</div>
-    <div class="w-1/2 pl-2 font-mono text-right text-text-faint">0</div>
+    <div class="w-3/5 pr-2 text-text-faint">Total</div>
+    <div class="w-2/5 pl-2 font-mono text-right text-text-faint">0</div>
   </div>
 </div>
 {% endif %}

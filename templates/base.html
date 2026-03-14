@@ -17,8 +17,8 @@
 <body hx-boost="true" class="bg-surface text-text min-h-screen font-mono" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
   <div id="loading-bar"></div>
   <!-- Top bar -->
-  <header class="sticky top-0 z-40 bg-surface-raised border-b border-border px-4 py-3">
-    <h1 class="text-lg font-semibold text-center">{% block header %}hledger{% endblock %}</h1>
+  <header class="sticky top-0 z-40 bg-surface-raised border-b border-border px-4 h-12 flex items-center justify-center">
+    <h1 class="text-lg font-semibold leading-none">{% block header %}hledger{% endblock %}</h1>
   </header>
 
   <!-- Pull-to-refresh indicator -->
@@ -35,7 +35,7 @@
   </main>
 
   <!-- Bottom nav -->
-  <nav class="fixed bottom-0 inset-x-0 z-40 bg-surface-raised border-t border-border flex justify-around py-3 text-xs sm:text-sm sm:justify-center sm:gap-8" aria-label="Main navigation">
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-surface-raised border-t border-border flex justify-around items-center py-2 text-xs sm:text-sm sm:justify-center sm:gap-8" aria-label="Main navigation">
     <a href="/transactions{% if month %}?month={{ month }}{% endif %}" {% if active == 'tx' %}aria-current="page"{% endif %} class="flex flex-col items-center gap-1 min-h-[44px] justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text rounded {% if active == 'tx' %}text-accent-text{% else %}text-text-muted{% endif %}">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span>Txns</span>
@@ -59,7 +59,7 @@
   </nav>
   <!-- Modal (Alpine.js) -->
   <div id="modal"
-       x-data="{ tx: null, editing: false, editTags: [], editPostings: [], _prevFocus: null }"
+       x-data="{ tx: null, editing: false, saving: false, editTags: [], editPostings: [], _prevFocus: null }"
        @show-tx.window="
          _prevFocus = document.activeElement;
          tx = JSON.parse($event.detail);
@@ -72,7 +72,7 @@
        @keydown.escape.window="tx = null; if (_prevFocus) _prevFocus.focus()">
     <template x-if="tx">
       <div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay" @click.self="tx = null; if (_prevFocus) _prevFocus.focus()">
-        <div id="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" class="bg-surface-raised border border-border-input rounded-xl w-full max-w-lg lg:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto focus:outline-none" @click.stop @keydown.tab="
+        <div id="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" class="bg-surface-raised border border-border-input rounded-lg w-full max-w-lg lg:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto focus:outline-none" @click.stop @keydown.tab="
           const focusable = [...$el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\'-1\'])')];
           if (!focusable.length) return;
           const first = focusable[0], last = focusable[focusable.length - 1];
@@ -84,7 +84,7 @@
           <div x-show="!editing">
             <div class="flex justify-between items-center p-4 border-b border-border">
               <h2 id="modal-title" class="text-lg font-semibold" x-text="'Transaction #' + tx.tindex"></h2>
-              <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white text-xl">&times;</button>
+              <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white w-8 h-8 flex items-center justify-center text-xl leading-none">&times;</button>
             </div>
             <div class="p-4 space-y-3">
               <div>
@@ -130,12 +130,15 @@
           <div x-show="editing">
             <div class="flex justify-between items-center p-4 border-b border-border">
               <h2 class="text-lg font-semibold">Edit Transaction</h2>
-              <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white text-xl">&times;</button>
+              <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white w-8 h-8 flex items-center justify-center text-xl leading-none">&times;</button>
             </div>
             <form @submit.prevent="
+                    if (saving) return;
+                    saving = true;
                     fetch('/transactions/' + tx.tindex, { method: 'POST', body: new FormData($el) })
                       .then(r => { if (r.ok) { tx = null; window.dispatchEvent(new Event('refresh')); } else { alert('Save failed (' + r.status + ')'); } })
                       .catch(() => alert('Network error'))
+                      .finally(() => saving = false)
                   " class="p-4 space-y-3">
               <div>
                 <label for="edit-date" class="text-xs text-text-muted">Date</label>
@@ -159,7 +162,7 @@
                   </div>
                 </template>
               </div>
-              <button type="button" @click="editTags.push({key:'',value:''})" class="text-accent-text hover:text-text-link-accent text-xs">+ Add tag</button>
+              <button type="button" @click="editTags.push({key:'',value:''})" class="text-accent-text hover:text-text-link-accent text-sm">+ Add tag</button>
               <div class="space-y-2">
                 <label class="text-xs text-text-muted">Postings</label>
                 <template x-for="(p, i) in editPostings" :key="i">
@@ -177,7 +180,10 @@
               </div>
               <button type="button" @click="editPostings.push({account:'',amount:'',balance_assertion:''})" class="text-accent-text hover:text-text-link-accent text-sm">+ Add posting</button>
               <div class="flex gap-2 pt-3 border-t border-border">
-                <button type="submit" class="btn-success flex-1 text-sm">Save</button>
+                <button type="submit" :disabled="saving" class="btn-success flex-1 text-sm disabled:opacity-50">
+                  <span x-show="!saving">Save</span>
+                  <span x-show="saving" x-cloak>Saving...</span>
+                </button>
                 <button type="button" @click="editing = false" class="btn-secondary flex-1 text-sm">Cancel</button>
               </div>
             </form>
@@ -196,7 +202,7 @@
     setTimeout(function(){bar.className='';},300);
   });
   document.addEventListener('htmx:responseError', function(e){
-    if(e.detail.target) e.detail.target.innerHTML = '<p class="text-negative text-center py-8">Failed to load. Try refreshing.</p>';
+    if(e.detail.target) e.detail.target.innerHTML = '<div class="text-center py-8"><p class="text-negative mb-3">Failed to load data.</p><button onclick="window.dispatchEvent(new Event(\'refresh\'))" class="btn-secondary text-sm">Retry</button></div>';
   });
 })();
 </script>

@@ -1,6 +1,6 @@
 {% from "macros.html" import qs %}
-<div class="flex gap-1 items-center text-xs mb-3">
-  <span class="text-text-faint mr-1">Depth:</span>
+<div class="flex gap-1.5 items-center justify-center text-xs mb-3">
+  <span class="text-text-faint">Depth:</span>
   {% for d in [1, 2, 3] %}
   <a href="{{ qs(_p, depth=d) }}"
      class="{% if depth == d %}chip-active{% else %}chip{% endif %}">{{ d }}</a>

@@ -1,6 +1,6 @@
 {% from "macros.html" import qs %}
-<div class="flex gap-1 items-center text-xs mb-3">
-  <span class="text-text-faint mr-1">Sort:</span>
+<div class="flex gap-1.5 items-center justify-center text-xs mb-3">
+  <span class="text-text-faint">Sort:</span>
   <a href="{{ qs(_p, sort='') }}"
      class="{% if not sort %}chip-active{% else %}chip{% endif %}">Name</a>
   <a href="{{ qs(_p, sort='amount') }}"
