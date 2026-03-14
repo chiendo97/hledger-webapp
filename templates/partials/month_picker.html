@@ -1,15 +1,15 @@
 {% from "macros.html" import qs %}
 <div class="flex items-center justify-center gap-2 mb-3">
   <a href="{{ qs(_p, month=prev_month) }}"
-     class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">&larr;</a>
+     class="px-2 py-1 rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm">&larr;</a>
   <form method="get" class="contents">
     {% for k, v in _p.items() if v is not none and v|string != '' and k != 'month' %}
     <input type="hidden" name="{{ k }}" value="{{ v }}">
     {% endfor %}
     <input type="month" name="month" value="{{ month }}"
            onchange="this.form.requestSubmit()"
-           class="input rounded-lg py-1 text-gray-200">
+           class="input rounded-lg py-1 text-text-heading">
   </form>
   <a href="{{ qs(_p, month=next_month) }}"
-     class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">&rarr;</a>
+     class="px-2 py-1 rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm">&rarr;</a>
 </div>
