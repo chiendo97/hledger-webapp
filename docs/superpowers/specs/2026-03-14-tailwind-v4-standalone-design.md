@@ -78,8 +78,8 @@ COPY templates/ templates/
 COPY static/ static/
 COPY style.css ./
 
-# Build CSS — pytailwindcss downloads the standalone binary (requires internet)
-RUN uv run tailwindcss -i style.css -o static/dist.css --minify
+# Build CSS — first invocation downloads the standalone binary (requires internet)
+RUN uv run --group build tailwindcss -i style.css -o static/dist.css --minify
 
 RUN groupadd --gid 1000 appuser && \
     useradd --create-home --uid 1000 --gid 1000 appuser
@@ -98,6 +98,8 @@ CMD ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "
 static/dist.css
 ```
 
+Note: `style.css` at the project root is a source file and must NOT be gitignored.
+
 ## CSS Input File Location
 
 The Tailwind input file lives at `style.css` in the project root (not inside `static/`). This avoids Litestar's static file serving exposing the raw unprocessed CSS with `@import`/`@theme` directives to browsers. Only the compiled `static/dist.css` is served.
@@ -106,7 +108,10 @@ The Tailwind input file lives at `style.css` in the project root (not inside `st
 
 Tailwind v4 automatically scans the working directory for source files when it sees `@import "tailwindcss"`. It will find `.html` files in `templates/` and `templates/partials/`. Jinja2 syntax (`{{ }}`, `{% %}`) does not interfere with class detection.
 
-One Alpine.js dynamic class binding exists in `base.html` (`:class="p.negative ? 'text-red-400' : 'text-green-400'"`). During Phase 2, this becomes `text-negative`/`text-positive`. Tailwind's scanner handles string literals inside `:class` bindings correctly.
+Dynamic color classes that need updating in Phase 2:
+- **Alpine.js binding** in `base.html`: `:class="p.negative ? 'text-red-400' : 'text-green-400'"` — becomes `text-negative`/`text-positive`. Tailwind's scanner handles string literals inside `:class` bindings correctly.
+- **Jinja2 conditionals** across ~5 partials (`tx_list.html`, `bal_content.html`, `bs_content.html`, `is_content.html`, `budget_content.html`): `{% if ... %}text-red-400{% else %}text-green-400{% endif %}` patterns (~10 occurrences) — same `text-negative`/`text-positive` replacement.
+- **Three-way budget conditionals** in `budget_content.html`: `text-red-400`/`text-yellow-400`/`text-green-400` maps to `text-negative`/`text-warning-text`/`text-positive`.
 
 ## Theme Tokens (`@theme`)
 
