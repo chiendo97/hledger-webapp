@@ -1,26 +1,26 @@
 {% for group in txs | groupby('tdate') | reverse %}
   <div class="flex items-center gap-3 {% if not loop.first %}mt-6{% endif %} mb-3">
-    <div class="flex-1 border-t border-gray-600"></div>
-    <span class="text-sm font-medium text-gray-300 whitespace-nowrap">{{ group.grouper }}</span>
-    <div class="flex-1 border-t border-gray-600"></div>
+    <div class="flex-1 border-t border-border-hover"></div>
+    <span class="text-sm font-medium text-text-heading whitespace-nowrap">{{ group.grouper }}</span>
+    <div class="flex-1 border-t border-border-hover"></div>
   </div>
   <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
     {% for tx in group.list %}
-    <div class="bg-gray-900 border border-gray-800 rounded-lg p-3 cursor-pointer hover:border-gray-600 transition-colors"
+    <div class="card transition-colors"
          data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))">
       <div class="flex justify-between items-start mb-2">
-        <span class="text-xs text-gray-500">{{ tx.tdate }}{% for t in tx.tags %}{% if t.key == 'time' %} {{ t.value }}{% endif %}{% endfor %}</span>
-        <span class="text-xs text-gray-600">#{{ tx.tindex }}</span>
+        <span class="text-xs text-text-faint">{{ tx.tdate }}{% for t in tx.tags %}{% if t.key == 'time' %} {{ t.value }}{% endif %}{% endfor %}</span>
+        <span class="text-xs text-text-faint">#{{ tx.tindex }}</span>
       </div>
-      <div class="font-medium text-sm mb-2 line-clamp-2 break-words text-gray-300">{{ tx.tdescription }}</div>
+      <div class="font-medium text-sm mb-2 line-clamp-2 break-words text-text-heading">{{ tx.tdescription }}</div>
       <div class="space-y-1">
         {% for p in tx.tpostings %}
         <div class="flex justify-between text-xs">
           <span class="truncate mr-2" style="color: {{ account_color(p.paccount) }}">{{ p.paccount }}</span>
           {% if p.balance_assertion_display %}
-          <span class="font-mono whitespace-nowrap text-gray-500">= {{ p.balance_assertion_display }}</span>
+          <span class="font-mono whitespace-nowrap text-text-faint">= {{ p.balance_assertion_display }}</span>
           {% else %}
-          <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-red-400{% else %}text-green-400{% endif %}">{{ p.amount_display }}</span>
+          <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ p.amount_display }}</span>
           {% endif %}
         </div>
         {% endfor %}
@@ -29,5 +29,5 @@
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-gray-500 text-center py-8">No transactions found.</p>
+  <p class="text-text-faint text-center py-8">No transactions found.</p>
 {% endfor %}
