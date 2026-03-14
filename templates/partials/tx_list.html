@@ -6,21 +6,18 @@
   </div>
   <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
     {% for tx in group.list %}
-    {# Pick the primary posting: first non-asset, or first posting #}
     {% set ns = namespace(primary=tx.tpostings[0]) %}
     {% for p in tx.tpostings %}
       {% if not p.paccount.startswith('asset:') and not p.paccount.startswith('liability:') and not p.paccount.startswith('equity:') %}
         {% set ns.primary = p %}
       {% endif %}
-      {% if loop.first and p.paccount.startswith('asset:') %}{% endif %}
     {% endfor %}
-    <div class="card transition-colors" role="button" tabindex="0"
+    <div class="card" role="button" tabindex="0"
          data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
       <div class="flex justify-between items-start mb-1">
         <span class="text-sm font-medium truncate mr-2" style="color: {{ account_color(ns.primary.paccount) }}">{{ account_short(ns.primary.paccount) }}</span>
         <span class="font-mono text-sm font-medium whitespace-nowrap {% if ns.primary.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ ns.primary.amount_display }}</span>
       </div>
-      <div class="text-xs text-text-faint truncate mb-2">{{ ns.primary.paccount }}</div>
       <div class="text-xs text-text-muted truncate mb-2">{{ tx.tdescription }}</div>
       <div class="flex justify-between items-center text-xs text-text-faint">
         <span>{% for t in tx.tags %}{% if t.key == 'time' %}{{ t.value }}{% endif %}{% endfor %}</span>

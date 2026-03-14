@@ -11,7 +11,7 @@
   <input type="hidden" name="month" value="{{ month }}">
   <label for="tx-search" class="sr-only">Search transactions</label>
   <input id="tx-search" type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
-         class="input rounded-lg w-full">
+         class="input rounded-lg w-full" onchange="this.form.requestSubmit()">
   <label for="tx-source" class="sr-only">Journal source</label>
   <select id="tx-source" name="source" class="input rounded-lg text-sm w-full" onchange="this.form.requestSubmit()">
     <option value="">All sources</option>
@@ -19,7 +19,6 @@
     <option value="{{ s }}" {% if s == source %}selected{% endif %}>{{ s }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="w-full btn">Go</button>
 </form>
 
 <!-- Transaction list (lazy loaded) -->

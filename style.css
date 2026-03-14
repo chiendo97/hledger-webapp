@@ -42,13 +42,6 @@
   --color-warning: #eab308;
   --color-warning-text: #facc15;
 
-  /* Highlight surfaces */
-  --color-surface-highlight: rgb(30 58 138 / 0.3);
-  --color-border-highlight: #1e3a8a;
-
-  /* Total row */
-  --color-surface-total: rgb(31 41 55 / 0.5);
-
   /* Interactive text */
   --color-text-link-danger: #fca5a5;
   --color-text-link-accent: #93c5fd;
@@ -74,15 +67,6 @@
 
 .chip-active {
   @apply px-3 py-1 rounded-full text-xs bg-accent text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
-}
-
-.divider {
-  @apply flex items-center gap-3 text-sm font-medium text-text-heading;
-}
-.divider::before,
-.divider::after {
-  content: "";
-  @apply flex-1 border-t border-border-hover;
 }
 
 .skeleton {
