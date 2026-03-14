@@ -93,14 +93,14 @@ async def index() -> Redirect:
 
 
 @get("/transactions")
-async def transactions(q: str = "", month: str = "", source: str = "") -> Template:
+async def transactions(q: str = "", month: str = "", source: str = "2025.journal") -> Template:
     mr = _month_range(month)
     sources = await hledger.sources(JOURNAL_FILE)
     return Template("transactions.html", context={"q": q, "source": source, "sources": sources, **mr})
 
 
 @get("/transactions/partial")
-async def transactions_partial(q: str = "", month: str = "", source: str = "") -> Template:
+async def transactions_partial(q: str = "", month: str = "", source: str = "2025.journal") -> Template:
     mr = _month_range(month)
     txs = await hledger.print_json(
         JOURNAL_FILE, query=q, begin=mr["begin"], end=mr["end"]
