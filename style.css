@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+/* ===== Theme Tokens ===== */
+
+@theme {
+  /* Surfaces */
+  --color-surface: #030712;
+  --color-surface-raised: #111827;
+  --color-surface-overlay: #000000b3;
+
+  /* Borders */
+  --color-border: #1f2937;
+  --color-border-hover: #4b5563;
+  --color-border-input: #374151;
+
+  /* Text */
+  --color-text: #f3f4f6;
+  --color-text-muted: #9ca3af;
+  --color-text-faint: #6b7280;
+  --color-text-heading: #d1d5db;
+
+  /* Accent */
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-text: #60a5fa;
+  --color-accent-light: #3b82f6;
+
+  /* Secondary surfaces */
+  --color-surface-button: #374151;
+  --color-surface-button-hover: #4b5563;
+  --color-surface-inset: #1f2937;
+
+  /* Success */
+  --color-success: #16a34a;
+  --color-success-hover: #22c55e;
+
+  /* Financial (semantic) */
+  --color-positive: #4ade80;
+  --color-negative: #f87171;
+
+  /* Warning */
+  --color-warning: #eab308;
+  --color-warning-text: #facc15;
+
+  /* Highlight surfaces */
+  --color-surface-highlight: rgb(30 58 138 / 0.3);
+  --color-border-highlight: #1e3a8a;
+
+  /* Total row */
+  --color-surface-total: rgb(31 41 55 / 0.5);
+
+  /* Interactive text */
+  --color-text-link-danger: #fca5a5;
+  --color-text-link-accent: #93c5fd;
+}
+
+/* ===== Component Classes ===== */
+
+.card {
+  @apply bg-surface-raised border border-border rounded-lg p-3 cursor-pointer hover:border-border-hover;
+}
+
+.btn {
+  @apply bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 font-medium;
+}
+
+.input {
+  @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-sm text-text focus:border-accent-text focus:outline-none;
+}
+
+.chip {
+  @apply px-3 py-1 rounded-full text-xs bg-surface-raised text-text-muted hover:bg-surface-raised/80;
+}
+
+.chip-active {
+  @apply px-3 py-1 rounded-full text-xs bg-accent text-white;
+}
+
+.divider {
+  @apply flex items-center gap-3 text-sm font-medium text-text-heading;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  @apply flex-1 border-t border-border-hover;
+}
+
+.skeleton {
+  @apply animate-pulse bg-surface-raised/50 rounded-lg;
+}
+
+.btn-secondary {
+  @apply bg-surface-button hover:bg-surface-button-hover text-text rounded-lg px-4 py-2 font-medium;
+}
+
+.btn-success {
+  @apply bg-success hover:bg-success-hover text-white rounded-lg px-4 py-2 font-medium;
+}
+
+/* ===== Preserved CSS (from old static/style.css) ===== */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior-y: contain;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+
+/* Safe area insets for iOS standalone mode */
+header.sticky {
+  padding-top: env(safe-area-inset-top);
+}
+nav.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Top loading bar */
+#loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  z-index: 9999;
+  width: 0;
+  background: var(--color-accent-light);
+  pointer-events: none;
+}
+#loading-bar.active {
+  animation: load-progress 8s cubic-bezier(0.2, 0.5, 0.3, 1) forwards;
+}
+#loading-bar.done {
+  animation: none;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+@keyframes load-progress {
+  0% { width: 0; }
+  20% { width: 40; }
+  50% { width: 70%; }
+  100% { width: 90%; }
+}
