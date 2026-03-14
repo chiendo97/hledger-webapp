@@ -5,17 +5,17 @@
   {% if r.date != ns.current_date %}
     {% set ns.current_date = r.date %}
     <div class="flex items-center gap-3 {% if not loop.first %}mt-4{% endif %} mb-2">
-      <div class="flex-1 border-t border-gray-600"></div>
-      <span class="text-sm font-medium text-gray-300 whitespace-nowrap">{{ r.date }}</span>
-      <div class="flex-1 border-t border-gray-600"></div>
+      <div class="flex-1 border-t border-border-hover"></div>
+      <span class="text-sm font-medium text-text-heading whitespace-nowrap">{{ r.date }}</span>
+      <div class="flex-1 border-t border-border-hover"></div>
     </div>
   {% endif %}
-  <div class="bg-gray-900 border border-gray-800 rounded-lg p-3">
+  <div class="bg-surface-raised border border-border rounded-lg p-3">
     <div class="text-sm font-medium mb-1 break-words">{{ r.description }}</div>
     <div class="flex justify-between text-xs">
-      <span class="text-gray-400 truncate mr-2">{{ r.account }}</span>
+      <span class="text-text-muted truncate mr-2">{{ r.account }}</span>
       {% if r.running %}
-      <span class="font-mono whitespace-nowrap text-gray-500">= {{ r.running }}</span>
+      <span class="font-mono whitespace-nowrap text-text-faint">= {{ r.running }}</span>
       {% else %}
       <span class="font-mono whitespace-nowrap">{{ r.amount }}</span>
       {% endif %}
@@ -24,5 +24,5 @@
   {% endfor %}
 </div>
 {% else %}
-<p class="text-gray-500 text-center py-8">No entries for {{ account }}.</p>
+<p class="text-text-faint text-center py-8">No entries for {{ account }}.</p>
 {% endif %}
