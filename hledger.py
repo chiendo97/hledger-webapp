@@ -139,7 +139,7 @@ class BudgetRow(BaseModel):
     actual: str
     budget: str
     percent: int = 0
-    is_expense: bool = True
+    category: str = "expense"  # "income", "expense", "saving"
 
 
 # ── Raw JSON models (internal parsing) ─────────────────────────────────
@@ -636,29 +636,37 @@ async def budget(
         if len(csv_row) < 3:
             continue
         name, actual_str, budget_str = csv_row[0], csv_row[1], csv_row[2]
-        if name.startswith(("Total", "asset:")):
+        if name.startswith("Total"):
             continue
         actual_val = _parse_budget_amount(actual_str)
         budget_val = _parse_budget_amount(budget_str)
         percent = round(actual_val / budget_val * 100) if budget_val != 0 else 0
-        is_expense = name.startswith("expense:")
-        if is_expense:
-            actual_fmt = f"{actual_val:,} vnd" if actual_val else "0 vnd"
-            budget_fmt = f"{budget_val:,} vnd" if budget_val else "0 vnd"
+        if name.startswith("revenue:"):
+            category = "income"
+        elif name.startswith("asset:"):
+            category = "saving"
         else:
+            category = "expense"
+        # Revenue/saving amounts are negative in hledger; show absolute values
+        if category in ("income", "saving"):
             actual_fmt = f"{abs(actual_val):,} vnd" if actual_val else "0 vnd"
             budget_fmt = f"{abs(budget_val):,} vnd" if budget_val else "0 vnd"
+        else:
+            actual_fmt = f"{actual_val:,} vnd" if actual_val else "0 vnd"
+            budget_fmt = f"{budget_val:,} vnd" if budget_val else "0 vnd"
         rows.append(BudgetRow(
             name=name,
             actual=actual_fmt,
             budget=budget_fmt,
             percent=percent,
-            is_expense=is_expense,
+            category=category,
         ))
     # Remove parent accounts that have children (keep only leaf budget rows)
     names = {r.name for r in rows}
     rows = [r for r in rows if not any(n.startswith(r.name + ":") for n in names)]
-    rows.sort(key=lambda r: (not r.is_expense, -r.percent))
+    # Sort within each category by percent descending
+    cat_order = {"income": 0, "expense": 1, "saving": 2}
+    rows.sort(key=lambda r: (cat_order.get(r.category, 9), -r.percent))
     return rows
 
 

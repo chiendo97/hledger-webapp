@@ -1,17 +1,19 @@
-{% set expenses = rows | selectattr("is_expense") | list %}
-{% set revenues = rows | rejectattr("is_expense") | list %}
+{% set income = rows | selectattr("category", "equalto", "income") | list %}
+{% set expenses = rows | selectattr("category", "equalto", "expense") | list %}
+{% set savings = rows | selectattr("category", "equalto", "saving") | list %}
 
-{% if expenses %}
-<h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Expenses</h2>
+{% macro budget_section(title, items, bar_colors) %}
+{% if items %}
+<h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">{{ title }}</h2>
 <div class="space-y-2 mb-6">
-  {% for row in expenses %}
+  {% for row in items %}
   <div class="bg-surface-raised border border-border rounded-lg p-3">
     <div class="flex justify-between items-baseline mb-1.5">
       <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
-      <span class="text-sm font-mono whitespace-nowrap {% if row.percent > 100 %}text-negative{% elif row.percent >= 80 %}text-warning-text{% else %}text-positive{% endif %}">{{ row.percent }}%</span>
+      <span class="text-sm font-mono whitespace-nowrap {% if row.percent > 100 %}{{ bar_colors.over }}{% elif row.percent >= 80 %}{{ bar_colors.warn }}{% else %}{{ bar_colors.normal }}{% endif %}">{{ row.percent }}%</span>
     </div>
     <div class="w-full bg-surface-inset rounded-full h-2 mb-1.5">
-      <div class="h-2 rounded-full {% if row.percent > 100 %}bg-negative{% elif row.percent >= 80 %}bg-warning{% else %}bg-positive{% endif %}"
+      <div class="h-2 rounded-full {% if row.percent > 100 %}{{ bar_colors.bar_over }}{% elif row.percent >= 80 %}{{ bar_colors.bar_warn }}{% else %}{{ bar_colors.bar_normal }}{% endif %}"
            style="width: {{ [row.percent, 100] | min }}%"></div>
     </div>
     <div class="flex justify-between text-xs text-text-faint">
@@ -22,28 +24,25 @@
   {% endfor %}
 </div>
 {% endif %}
+{% endmacro %}
 
-{% if revenues %}
-<h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Revenue</h2>
-<div class="space-y-2">
-  {% for row in revenues %}
-  <div class="bg-surface-raised border border-border rounded-lg p-3">
-    <div class="flex justify-between items-baseline mb-1.5">
-      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
-      <span class="text-sm font-mono whitespace-nowrap {% if row.percent >= 80 %}text-positive{% elif row.percent >= 50 %}text-warning-text{% else %}text-text-muted{% endif %}">{{ row.percent }}%</span>
-    </div>
-    <div class="w-full bg-surface-inset rounded-full h-2 mb-1.5">
-      <div class="h-2 rounded-full {% if row.percent >= 80 %}bg-positive{% elif row.percent >= 50 %}bg-warning{% else %}bg-border-hover{% endif %}"
-           style="width: {{ [row.percent, 100] | min }}%"></div>
-    </div>
-    <div class="flex justify-between text-xs text-text-faint">
-      <span>{{ row.actual }}</span>
-      <span>{{ row.budget }}</span>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
+{# Income: high % is good (green), low is muted #}
+{{ budget_section("Income", income, {
+  "over": "text-positive", "warn": "text-positive", "normal": "text-text-muted",
+  "bar_over": "bg-positive", "bar_warn": "bg-positive", "bar_normal": "bg-border-hover"
+}) }}
+
+{# Expenses: high % is bad (red), medium is warning #}
+{{ budget_section("Expenses", expenses, {
+  "over": "text-negative", "warn": "text-warning-text", "normal": "text-positive",
+  "bar_over": "bg-negative", "bar_warn": "bg-warning", "bar_normal": "bg-positive"
+}) }}
+
+{# Save & Invest: high % is good (green), low is warning #}
+{{ budget_section("Save & Invest", savings, {
+  "over": "text-positive", "warn": "text-positive", "normal": "text-text-muted",
+  "bar_over": "bg-positive", "bar_warn": "bg-positive", "bar_normal": "bg-border-hover"
+}) }}
 
 {% if not rows %}
 <p class="text-text-faint text-center py-8">No budget data for this period.</p>
