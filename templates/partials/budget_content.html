@@ -2,19 +2,19 @@
 {% set revenues = rows | rejectattr("is_expense") | list %}
 
 {% if expenses %}
-<h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Expenses</h2>
+<h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Expenses</h2>
 <div class="space-y-2 mb-6">
   {% for row in expenses %}
-  <div class="bg-gray-900 border border-gray-800 rounded-lg p-3">
+  <div class="bg-surface-raised border border-border rounded-lg p-3">
     <div class="flex justify-between items-baseline mb-1.5">
-      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-gray-200 truncate mr-2 hover:text-blue-400">{{ row.name }}</a>
-      <span class="text-sm font-mono whitespace-nowrap {% if row.percent > 100 %}text-red-400{% elif row.percent >= 80 %}text-yellow-400{% else %}text-green-400{% endif %}">{{ row.percent }}%</span>
+      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
+      <span class="text-sm font-mono whitespace-nowrap {% if row.percent > 100 %}text-negative{% elif row.percent >= 80 %}text-warning-text{% else %}text-positive{% endif %}">{{ row.percent }}%</span>
     </div>
-    <div class="w-full bg-gray-800 rounded-full h-2 mb-1.5">
-      <div class="h-2 rounded-full {% if row.percent > 100 %}bg-red-500{% elif row.percent >= 80 %}bg-yellow-500{% else %}bg-green-500{% endif %}"
+    <div class="w-full bg-surface-inset rounded-full h-2 mb-1.5">
+      <div class="h-2 rounded-full {% if row.percent > 100 %}bg-negative{% elif row.percent >= 80 %}bg-warning{% else %}bg-positive{% endif %}"
            style="width: {{ [row.percent, 100] | min }}%"></div>
     </div>
-    <div class="flex justify-between text-xs text-gray-500">
+    <div class="flex justify-between text-xs text-text-faint">
       <span>{{ row.actual }}</span>
       <span>{{ row.budget }}</span>
     </div>
@@ -24,19 +24,19 @@
 {% endif %}
 
 {% if revenues %}
-<h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Revenue</h2>
+<h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Revenue</h2>
 <div class="space-y-2">
   {% for row in revenues %}
-  <div class="bg-gray-900 border border-gray-800 rounded-lg p-3">
+  <div class="bg-surface-raised border border-border rounded-lg p-3">
     <div class="flex justify-between items-baseline mb-1.5">
-      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-gray-200 truncate mr-2 hover:text-blue-400">{{ row.name }}</a>
-      <span class="text-sm font-mono whitespace-nowrap {% if row.percent >= 80 %}text-green-400{% elif row.percent >= 50 %}text-yellow-400{% else %}text-gray-400{% endif %}">{{ row.percent }}%</span>
+      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
+      <span class="text-sm font-mono whitespace-nowrap {% if row.percent >= 80 %}text-positive{% elif row.percent >= 50 %}text-warning-text{% else %}text-text-muted{% endif %}">{{ row.percent }}%</span>
     </div>
-    <div class="w-full bg-gray-800 rounded-full h-2 mb-1.5">
-      <div class="h-2 rounded-full {% if row.percent >= 80 %}bg-green-500{% elif row.percent >= 50 %}bg-yellow-500{% else %}bg-gray-600{% endif %}"
+    <div class="w-full bg-surface-inset rounded-full h-2 mb-1.5">
+      <div class="h-2 rounded-full {% if row.percent >= 80 %}bg-positive{% elif row.percent >= 50 %}bg-warning{% else %}bg-border-hover{% endif %}"
            style="width: {{ [row.percent, 100] | min }}%"></div>
     </div>
-    <div class="flex justify-between text-xs text-gray-500">
+    <div class="flex justify-between text-xs text-text-faint">
       <span>{{ row.actual }}</span>
       <span>{{ row.budget }}</span>
     </div>
@@ -46,5 +46,5 @@
 {% endif %}
 
 {% if not rows %}
-<p class="text-gray-500 text-center py-8">No budget data for this period.</p>
+<p class="text-text-faint text-center py-8">No budget data for this period.</p>
 {% endif %}
