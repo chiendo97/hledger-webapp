@@ -1,25 +1,40 @@
-# Tailwind v4 Setup & Theming Design
+# Tailwind v4 Standalone CLI Setup & Theming Design
 
 ## Goal
 
-Migrate from Tailwind CSS CDN to Tailwind v4 CLI with a single CSS file (`static/style.css`) controlling all design tokens and component classes. This enables centralized theming — restyle the entire app by editing one file.
+Migrate from Tailwind CSS CDN to Tailwind v4 standalone CLI with a single CSS file (`static/style.css`) controlling all design tokens and component classes. Restyle the entire app by editing one file. No Node.js dependency.
 
 ## Decision
 
 | Choice | Option | Rationale |
 |--------|--------|-----------|
 | Tailwind version | v4 (CSS-native config) | Single-file config via `@theme`, no `tailwind.config.js` needed |
-| Build tool | `@tailwindcss/cli` | Minimal tooling, no bundler, tree-shaken output |
+| Build tool | Tailwind v4 standalone binary via `pytailwindcss` | No Node.js — stays in the Python toolchain |
 | Theming approach | Semantic `@theme` tokens + `@apply` component classes | Colors defined once as tokens, repeated patterns as component classes |
-| Build step | Yes | Required for `@theme`/`@apply`; adds `package.json` + npm to project |
+| Build step | Yes | Required for `@theme`/`@apply`; adds one `RUN` line to Dockerfile |
 
 ## Tooling Setup
 
-### New files
+### pytailwindcss
 
-- `package.json` + `package-lock.json` — `@tailwindcss/cli` as dev dependency (run `npm install` locally first to generate lock file, commit both)
-- `static/dist.css` — generated output (gitignored)
-- `node_modules/` — (gitignored)
+Install via `uv` as a dependency group in `pyproject.toml`:
+
+```toml
+[dependency-groups]
+build = ["pytailwindcss"]
+```
+
+For Docker, `pytailwindcss` must be available at build time, so include it as a regular dependency or install the build group in the Dockerfile.
+
+### Dev workflow
+
+```bash
+# Terminal 1: CSS watcher
+uv run tailwindcss -i static/style.css -o static/dist.css --watch
+
+# Terminal 2: Dev server
+uv run python app.py
+```
 
 ### base.html changes
 
@@ -34,38 +49,48 @@ With:
 <link rel="stylesheet" href="/static/dist.css">
 ```
 
-### Dev command
+Remove `class="dark"` from `<html>` — the app is dark-only, tokens define the palette directly without `dark:` variants.
 
-```bash
-npx @tailwindcss/cli -i static/style.css -o static/dist.css --watch
-```
+### Dockerfile
 
-### Dockerfile addition
-
-Use a multi-stage build: Node stage builds the CSS, then copy the output into the Python image.
+Single-stage build, no Node image needed:
 
 ```dockerfile
-# Stage 1: Build CSS
-FROM node:22-slim AS css-builder
-WORKDIR /build
-COPY package.json package-lock.json ./
-RUN npm ci
-# Templates must be copied before CSS build — Tailwind v4 scans them for class usage
-COPY static/style.css static/style.css
-COPY templates/ templates/
-RUN npx @tailwindcss/cli -i static/style.css -o static/dist.css --minify
-
-# Stage 2: Python app (existing, with one addition)
 FROM python:3.12-slim
-# ... existing setup ...
-COPY --from=css-builder /build/static/dist.css static/dist.css
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends hledger && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
+
+COPY app.py hledger.py ./
+COPY templates/ templates/
+COPY static/ static/
+
+# Build CSS — pytailwindcss downloads the standalone binary
+RUN uv run tailwindcss -i static/style.css -o static/dist.css --minify
+
+RUN groupadd --gid 1000 appuser && \
+    useradd --create-home --uid 1000 --gid 1000 appuser
+USER appuser
+
+EXPOSE 8000
+
+ENV UV_NO_SYNC=1
+
+CMD ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "debug"]
 ```
 
 ### .gitignore additions
 
 ```
 static/dist.css
-node_modules/
 ```
 
 ## Theme Tokens (`@theme`)
@@ -99,7 +124,7 @@ All design tokens live in `static/style.css` under `@theme`:
   --color-accent-light: #3b82f6;      /* loading bar, lighter interactive (blue-500) */
 
   /* Secondary surfaces */
-  --color-surface-button: #374151;    /* secondary buttons like Close/Cancel (gray-700) */
+  --color-surface-button: #374151;    /* secondary buttons (gray-700) */
   --color-surface-button-hover: #4b5563; /* secondary button hover (gray-600) */
   --color-surface-inset: #1f2937;     /* pull-to-refresh, inset areas (gray-800) */
 
@@ -116,11 +141,11 @@ All design tokens live in `static/style.css` under `@theme`:
   --color-warning-text: #facc15;      /* budget warning text (yellow-400) */
 
   /* Highlight surfaces (net/summary boxes) */
-  --color-surface-highlight: rgb(30 58 138 / 0.3);  /* net worth/net summary bg (blue-900/30) */
+  --color-surface-highlight: rgb(30 58 138 / 0.3);  /* net worth/net summary bg */
   --color-border-highlight: #1e3a8a;  /* net summary border (blue-800) */
 
   /* Total row */
-  --color-surface-total: rgb(31 41 55 / 0.5);  /* subtotal/total row bg (gray-800/50) */
+  --color-surface-total: rgb(31 41 55 / 0.5);  /* subtotal/total row bg */
 
   /* Interactive text */
   --color-text-link-danger: #fca5a5;  /* delete link hover (red-300) */
@@ -128,7 +153,7 @@ All design tokens live in `static/style.css` under `@theme`:
 }
 ```
 
-### Token → utility mapping
+### Token to utility mapping
 
 | Token | Utility class | Replaces |
 |-------|--------------|----------|
@@ -145,10 +170,10 @@ All design tokens live in `static/style.css` under `@theme`:
 | `--color-accent` | `bg-accent` | `bg-blue-600` |
 | `--color-accent-hover` | `bg-accent-hover` | `hover:bg-blue-700` |
 | `--color-accent-text` | `text-accent-text` | `text-blue-400` |
-| `--color-accent-light` | `bg-accent-light` | `bg-blue-500`, loading bar `#3b82f6` |
+| `--color-accent-light` | `bg-accent-light` | `bg-blue-500` |
 | `--color-surface-button` | `bg-surface-button` | `bg-gray-700` |
 | `--color-surface-button-hover` | `bg-surface-button-hover` | `hover:bg-gray-600` |
-| `--color-surface-inset` | `bg-surface-inset` | `bg-gray-800` (pull-to-refresh, etc.) |
+| `--color-surface-inset` | `bg-surface-inset` | `bg-gray-800` |
 | `--color-success` | `bg-success` | `bg-green-600` |
 | `--color-success-hover` | `bg-success-hover` | `hover:bg-green-500` |
 | `--color-positive` | `text-positive` | `text-green-400` |
@@ -210,30 +235,31 @@ Defined in `static/style.css` after the `@theme` block:
 
 ## Existing CSS to preserve
 
-The current `static/style.css` contains non-trivial rules that must be carried forward below the `@theme` and component class blocks:
+The current `static/style.css` contains rules that must be carried forward below the `@theme` and component class blocks:
 
 - Loading bar animation (`#loading-bar`, `@keyframes load-progress`) — update `#3b82f6` to `var(--color-accent-light)`
 - iOS safe-area insets (header, nav, body padding)
 - Tap-highlight removal and overscroll behavior
 - Date input calendar picker icon styling
 
-The `.input` class gets replaced by the new `@apply`-based version.
+The existing `.input` class gets replaced by the new `@apply`-based version.
 
 ## Migration Plan
 
 ### Phase 1 — Tooling switch
 
-1. Run `npm init -y && npm install -D @tailwindcss/cli` to create `package.json` + `package-lock.json`
+1. Add `pytailwindcss` to `pyproject.toml` as a dependency group
 2. Rewrite `static/style.css` with `@import "tailwindcss"`, `@theme`, component classes, and preserved existing CSS
-3. Update `base.html`: replace CDN `<script>` tags with `<link rel="stylesheet" href="/static/dist.css">`, remove `class="dark"` from `<html>` (no longer needed — app is dark-only with tokens, not `dark:` variants)
-4. Update `Dockerfile` with multi-stage Node build for CSS
-5. Add `static/dist.css` and `node_modules/` to `.gitignore`
+3. Update `base.html`: replace CDN `<script>` tags with `<link rel="stylesheet" href="/static/dist.css">`, remove `class="dark"` from `<html>`
+4. Update `Dockerfile` with CSS build `RUN` line
+5. Add `static/dist.css` to `.gitignore`
 6. Verify the app renders identically
 
 ### Phase 2 — Template migration
 
 1. Replace hardcoded color classes with semantic tokens across all templates
 2. Replace repeated class combos with component classes
+3. Verify each template after migration
 
 ## What stays the same
 
@@ -241,5 +267,5 @@ The `.input` class gets replaced by the new `@apply`-based version.
 - HTMX/Alpine.js behavior untouched
 - Layout structure, grids, responsive breakpoints unchanged
 - Dynamic `account_color()` inline styles unchanged
-- iOS PWA safe-area handling stays in CSS
-- Financial color semantics (red/green) preserved
+- iOS PWA safe-area handling stays in CSS (moves into the new `style.css`)
+- Financial color semantics (red/green) preserved via `--color-positive`/`--color-negative`
