@@ -6,7 +6,8 @@
 {% block content %}
 <form method="get" class="mb-4">
   <input type="hidden" name="month" value="{{ month }}">
-  <select name="account" onchange="this.form.requestSubmit()"
+  <label for="reg-account" class="sr-only">Account</label>
+  <select id="reg-account" name="account" onchange="this.form.requestSubmit()"
           class="input rounded-lg w-full">
     <option value="">Select account...</option>
     {% if account and account not in accounts %}
@@ -25,6 +26,6 @@
   {% include "partials/skeleton.html" %}
 </div>
 {% else %}
-<p class="text-text-faint text-center py-8">Select an account above.</p>
+<p class="text-text-faint text-center py-8">Choose an account to view its transaction history.</p>
 {% endif %}
 {% endblock %}

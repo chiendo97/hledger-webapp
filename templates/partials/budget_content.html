@@ -2,26 +2,55 @@
 {% set expenses = rows | selectattr("category", "equalto", "expense") | list %}
 {% set savings = rows | selectattr("category", "equalto", "saving") | list %}
 
-{% macro budget_section(title, items, bar_colors) %}
-{% if items %}
-<h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">{{ title }}</h2>
-<div class="space-y-2 mb-6">
-  {% for row in items %}
-  <div class="bg-surface-raised border border-border rounded-lg p-3">
-    <div class="flex justify-between items-baseline mb-1.5">
-      <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
-      <span class="text-sm font-mono whitespace-nowrap {% if row.percent > 100 %}{{ bar_colors.over }}{% elif row.percent >= 80 %}{{ bar_colors.warn }}{% else %}{{ bar_colors.normal }}{% endif %}">{{ row.percent }}%</span>
+{# ── Budget overview (hero) ── #}
+{% if rows %}
+{% set over_budget = expenses | selectattr("percent", "greaterthan", 100) | list %}
+{% set on_track = expenses | rejectattr("percent", "greaterthan", 100) | list %}
+<div class="border border-border rounded-lg mb-6 overflow-hidden">
+  <div class="px-4 py-3 flex justify-around text-center">
+    <div>
+      <div class="text-xs text-text-faint uppercase tracking-widest mb-1">Over budget</div>
+      <div class="font-mono text-2xl font-bold {% if over_budget %}text-negative{% else %}text-positive{% endif %}">{{ over_budget | length }}</div>
     </div>
-    <div class="w-full bg-surface-inset rounded-full h-2 mb-1.5">
-      <div class="h-2 rounded-full {% if row.percent > 100 %}{{ bar_colors.bar_over }}{% elif row.percent >= 80 %}{{ bar_colors.bar_warn }}{% else %}{{ bar_colors.bar_normal }}{% endif %}"
-           style="width: {{ [row.percent, 100] | min }}%"></div>
+    <div class="border-l border-border"></div>
+    <div>
+      <div class="text-xs text-text-faint uppercase tracking-widest mb-1">On track</div>
+      <div class="font-mono text-2xl font-bold text-positive">{{ on_track | length }}</div>
     </div>
-    <div class="flex justify-between text-xs text-text-faint">
-      <span>{{ row.actual }}</span>
-      <span>{{ row.budget }}</span>
+    <div class="border-l border-border"></div>
+    <div>
+      <div class="text-xs text-text-faint uppercase tracking-widest mb-1">Categories</div>
+      <div class="font-mono text-2xl font-bold text-text">{{ expenses | length }}</div>
     </div>
   </div>
-  {% endfor %}
+</div>
+{% endif %}
+
+{% macro budget_section(title, items, bar_colors) %}
+{% if items %}
+<div class="mb-5">
+  <div class="flex items-center gap-2 mb-2">
+    <h2 class="text-xs font-bold text-text-faint uppercase tracking-widest">{{ title }}</h2>
+    <div class="flex-1 border-t border-border"></div>
+  </div>
+  <div class="space-y-2">
+    {% for row in items %}
+    <div class="bg-surface-raised border {% if row.percent > 100 %}border-negative/30{% else %}border-border{% endif %} rounded-lg p-3">
+      <div class="flex justify-between items-baseline mb-1.5">
+        <a href="/register?account={{ row.name | urlencode }}" class="text-sm text-text-heading truncate mr-2 hover:text-accent-text">{{ row.name }}</a>
+        <span class="font-mono font-bold whitespace-nowrap {% if row.percent > 100 %}text-lg {{ bar_colors.over }}{% elif row.percent >= 80 %}text-base {{ bar_colors.warn }}{% else %}text-sm {{ bar_colors.normal }}{% endif %}">{{ row.percent }}%</span>
+      </div>
+      <div class="w-full bg-surface-inset rounded-full h-2.5 mb-1.5">
+        <div class="h-2.5 rounded-full {% if row.percent > 100 %}{{ bar_colors.bar_over }}{% elif row.percent >= 80 %}{{ bar_colors.bar_warn }}{% else %}{{ bar_colors.bar_normal }}{% endif %}"
+             style="width: {{ [row.percent, 100] | min }}%"></div>
+      </div>
+      <div class="flex justify-between text-xs font-mono text-text-faint">
+        <span>{{ row.actual }}</span>
+        <span>{{ row.budget }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 {% endif %}
 {% endmacro %}
@@ -45,5 +74,5 @@
 }) }}
 
 {% if not rows %}
-<p class="text-text-faint text-center py-8">No budget data for this period.</p>
+<p class="text-text-faint text-center py-8">No budget data for this period. Define periodic budgets in your journal to track spending.</p>
 {% endif %}

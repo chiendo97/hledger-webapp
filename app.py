@@ -58,6 +58,17 @@ def _account_color(account: str) -> str:
     return _ACCOUNT_COLORS[h % len(_ACCOUNT_COLORS)]
 
 
+def _account_short(account: str) -> str:
+    """Extract a human-readable short label from an account path.
+
+    'expense:drink:coffee' → 'Coffee'
+    'asset:vietinbank:checking' → 'Checking'
+    'revenue:salary' → 'Salary'
+    """
+    leaf = account.rsplit(":", 1)[-1] if ":" in account else account
+    return leaf.replace("_", " ").title()
+
+
 def _month_range(month: str) -> dict[str, str]:
     """Given a 'YYYY-MM' string (or empty for current month), return month context dict."""
     if not month:
@@ -294,7 +305,7 @@ async def register_partial(account: str = "") -> Template:
 # ── App ─────────────────────────────────────────────────────────────────
 
 app = Litestar(
-    debug=True,
+    debug=os.environ.get("DEBUG", "").lower() == "true",
     route_handlers=[
         index,
         transactions,
@@ -321,6 +332,7 @@ app = Litestar(
 # Register Jinja2 globals
 engine = app.template_engine  # pyright: ignore[reportAny]
 engine.engine.globals["account_color"] = _account_color  # pyright: ignore[reportAny, reportUnknownMemberType]
+engine.engine.globals["account_short"] = _account_short  # pyright: ignore[reportAny, reportUnknownMemberType]
 
 if __name__ == "__main__":
     import uvicorn

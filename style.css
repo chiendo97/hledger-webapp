@@ -57,23 +57,23 @@
 /* ===== Component Classes ===== */
 
 .card {
-  @apply bg-surface-raised border border-border rounded-lg p-3 cursor-pointer hover:border-border-hover;
+  @apply bg-surface-raised border border-border rounded-lg p-3 cursor-pointer hover:border-border-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .btn {
-  @apply bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 font-medium;
+  @apply bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .input {
-  @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-sm text-text focus:border-accent-text focus:outline-none;
+  @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-sm text-text focus:border-accent-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .chip {
-  @apply px-3 py-1 rounded-full text-xs bg-surface-raised text-text-muted hover:bg-surface-raised/80;
+  @apply px-3 py-1 rounded-full text-xs bg-surface-raised text-text-muted hover:bg-surface-raised/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .chip-active {
-  @apply px-3 py-1 rounded-full text-xs bg-accent text-white;
+  @apply px-3 py-1 rounded-full text-xs bg-accent text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .divider {
@@ -90,11 +90,11 @@
 }
 
 .btn-secondary {
-  @apply bg-surface-button hover:bg-surface-button-hover text-text rounded-lg px-4 py-2 font-medium;
+  @apply bg-surface-button hover:bg-surface-button-hover text-text rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .btn-success {
-  @apply bg-success hover:bg-success-hover text-white rounded-lg px-4 py-2 font-medium;
+  @apply bg-success hover:bg-success-hover text-white rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 /* ===== Preserved CSS (from old static/style.css) ===== */
@@ -143,7 +143,7 @@ body {
 }
 @keyframes load-progress {
   0% { width: 0; }
-  20% { width: 40; }
+  20% { width: 40%; }
   50% { width: 70%; }
   100% { width: 90%; }
 }

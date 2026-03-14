@@ -6,28 +6,29 @@
   </div>
   <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
     {% for tx in group.list %}
-    <div class="card transition-colors"
-         data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))">
-      <div class="flex justify-between items-start mb-2">
-        <span class="text-xs text-text-faint">{{ tx.tdate }}{% for t in tx.tags %}{% if t.key == 'time' %} {{ t.value }}{% endif %}{% endfor %}</span>
-        <span class="text-xs text-text-faint">#{{ tx.tindex }}</span>
+    {# Pick the primary posting: first non-asset, or first posting #}
+    {% set ns = namespace(primary=tx.tpostings[0]) %}
+    {% for p in tx.tpostings %}
+      {% if not p.paccount.startswith('asset:') and not p.paccount.startswith('liability:') and not p.paccount.startswith('equity:') %}
+        {% set ns.primary = p %}
+      {% endif %}
+      {% if loop.first and p.paccount.startswith('asset:') %}{% endif %}
+    {% endfor %}
+    <div class="card transition-colors" role="button" tabindex="0"
+         data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+      <div class="flex justify-between items-start mb-1">
+        <span class="text-sm font-medium truncate mr-2" style="color: {{ account_color(ns.primary.paccount) }}">{{ account_short(ns.primary.paccount) }}</span>
+        <span class="font-mono text-sm font-medium whitespace-nowrap {% if ns.primary.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ ns.primary.amount_display }}</span>
       </div>
-      <div class="font-medium text-sm mb-2 line-clamp-2 break-words text-text-heading">{{ tx.tdescription }}</div>
-      <div class="space-y-1">
-        {% for p in tx.tpostings %}
-        <div class="flex justify-between text-xs">
-          <span class="truncate mr-2" style="color: {{ account_color(p.paccount) }}">{{ p.paccount }}</span>
-          {% if p.balance_assertion_display %}
-          <span class="font-mono whitespace-nowrap text-text-faint">= {{ p.balance_assertion_display }}</span>
-          {% else %}
-          <span class="font-mono whitespace-nowrap {% if p.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ p.amount_display }}</span>
-          {% endif %}
-        </div>
-        {% endfor %}
+      <div class="text-xs text-text-faint truncate mb-2">{{ ns.primary.paccount }}</div>
+      <div class="text-xs text-text-muted truncate mb-2">{{ tx.tdescription }}</div>
+      <div class="flex justify-between items-center text-xs text-text-faint">
+        <span>{% for t in tx.tags %}{% if t.key == 'time' %}{{ t.value }}{% endif %}{% endfor %}</span>
+        <span>#{{ tx.tindex }}</span>
       </div>
     </div>
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-text-faint text-center py-8">No transactions found.</p>
+  <p class="text-text-faint text-center py-8">No transactions this month. Try a different month or remove filters.</p>
 {% endfor %}

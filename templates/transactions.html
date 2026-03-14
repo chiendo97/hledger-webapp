@@ -9,9 +9,11 @@
 <!-- Search / Filter -->
 <form action="/transactions" method="get" class="mb-4 space-y-2">
   <input type="hidden" name="month" value="{{ month }}">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
+  <label for="tx-search" class="sr-only">Search transactions</label>
+  <input id="tx-search" type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
          class="input rounded-lg w-full">
-  <select name="source" class="input rounded-lg text-sm w-full" onchange="this.form.submit()">
+  <label for="tx-source" class="sr-only">Journal source</label>
+  <select id="tx-source" name="source" class="input rounded-lg text-sm w-full" onchange="this.form.requestSubmit()">
     <option value="">All sources</option>
     {% for s in sources %}
     <option value="{{ s }}" {% if s == source %}selected{% endif %}>{{ s }}</option>

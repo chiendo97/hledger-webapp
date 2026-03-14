@@ -1,7 +1,7 @@
 {% from "macros.html" import qs %}
 <div class="flex items-center justify-center gap-2 mb-3">
-  <a href="{{ qs(_p, month=prev_month) }}"
-     class="px-2 py-1 rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm">&larr;</a>
+  <a href="{{ qs(_p, month=prev_month) }}" aria-label="Previous month"
+     class="px-2 py-1 rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text">&larr;</a>
   <form method="get" class="contents">
     {% for k, v in _p.items() if v is not none and v|string != '' and k != 'month' %}
     <input type="hidden" name="{{ k }}" value="{{ v }}">
@@ -10,6 +10,6 @@
            onchange="this.form.requestSubmit()"
            class="input rounded-lg py-1 text-text-heading">
   </form>
-  <a href="{{ qs(_p, month=next_month) }}"
-     class="px-2 py-1 rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm">&rarr;</a>
+  <a href="{{ qs(_p, month=next_month) }}" aria-label="Next month"
+     class="px-2 py-1 rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text">&rarr;</a>
 </div>
