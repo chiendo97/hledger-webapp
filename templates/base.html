@@ -40,10 +40,6 @@
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span>Txns</span>
     </a>
-    <a href="/balances{% if month %}?month={{ month }}{% endif %}" class="flex flex-col items-center gap-1 {% if active == 'bal' %}text-accent-text{% else %}text-text-muted{% endif %}">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg>
-      <span>Bal</span>
-    </a>
     <a href="/incomestatement{% if month %}?month={{ month }}{% endif %}" class="flex flex-col items-center gap-1 {% if active == 'is' %}text-accent-text{% else %}text-text-muted{% endif %}">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
       <span>Income</span>

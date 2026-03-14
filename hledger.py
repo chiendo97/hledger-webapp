@@ -169,9 +169,6 @@ class _CompoundReportRaw(BaseModel):
 # ── Type adapters ──────────────────────────────────────────────────────
 
 _tx_adapter = TypeAdapter(list[Transaction])
-_bal_adapter = TypeAdapter(
-    tuple[list[tuple[str, str, int, list[Amount]]], list[Amount]]
-)
 _reg_adapter = TypeAdapter(list[tuple[str, str | None, str, _RegPosting, list[Amount]]])
 _compound_adapter = TypeAdapter(_CompoundReportRaw)
 
@@ -332,6 +329,25 @@ def _parse_compound_report(raw: _CompoundReportRaw) -> CompoundReport:
                     abs_total=_abs_total(amounts),
                 )
             )
+        # Synthesize a depth-0 parent row when hledger collapses single-child parents
+        if rows and not any(r.depth == 0 for r in rows):
+            parent_name = rows[0].name.split(":")[0]
+            totals_row = sub_table.prTotals
+            parent_amounts = totals_row.prrAmounts[0] if totals_row.prrAmounts else []
+            rows.insert(
+                0,
+                BalanceRow(
+                    name=parent_name,
+                    depth=0,
+                    amounts=_fmt_amounts(parent_amounts) if parent_amounts else "",
+                    amount_items=(
+                        [_fmt_amount(a) for a in _merge_amounts(parent_amounts)]
+                        if parent_amounts
+                        else []
+                    ),
+                    abs_total=_abs_total(parent_amounts),
+                ),
+            )
         totals = sub_table.prTotals
         total_amounts = totals.prrAmounts[0] if totals.prrAmounts else []
         subreports.append(
@@ -453,39 +469,6 @@ async def print_json(
     return txs
 
 
-async def balances(
-    file: str,
-    query: str = "",
-    depth: int = 0,
-    begin: str = "",
-    end: str = "",
-) -> list[BalanceRow]:
-    args = ["hledger", "-f", file, "bal", "-O", "json", "--tree"]
-    if depth:
-        args += ["--depth", str(depth)]
-    if begin:
-        args += ["-b", begin]
-    if end:
-        args += ["-e", end]
-    if query:
-        args.append(query)
-    raw_str = await _run(args)
-    account_rows, _totals = _bal_adapter.validate_json(raw_str)
-    rows: list[BalanceRow] = []
-    for name, _full, row_depth, amounts in account_rows:
-        rows.append(
-            BalanceRow(
-                name=name,
-                depth=row_depth,
-                amounts=_fmt_amounts(amounts),
-                amount_items=(
-                    [_fmt_amount(a) for a in _merge_amounts(amounts)] if amounts else []
-                ),
-                abs_total=_abs_total(amounts),
-            )
-        )
-    return rows
-
 
 async def income_statement(
     file: str,
@@ -493,7 +476,7 @@ async def income_statement(
     begin: str = "",
     end: str = "",
 ) -> CompoundReport:
-    args = ["hledger", "-f", file, "is", "-O", "json"]
+    args = ["hledger", "-f", file, "is", "-O", "json", "--tree"]
     if depth:
         args += ["--depth", str(depth)]
     if begin:
@@ -511,7 +494,7 @@ async def balance_sheet(
     begin: str = "",
     end: str = "",
 ) -> CompoundReport:
-    args = ["hledger", "-f", file, "bs", "-O", "json"]
+    args = ["hledger", "-f", file, "bs", "-O", "json", "--tree"]
     if depth:
         args += ["--depth", str(depth)]
     if begin:

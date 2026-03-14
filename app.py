@@ -84,6 +84,41 @@ def _month_range(month: str) -> dict[str, str]:
     }
 
 
+def _sort_rows_by_amount(rows: list[hledger.BalanceRow]) -> list[hledger.BalanceRow]:
+    """Sort rows by amount within each top-level account group.
+
+    Keeps top-level accounts in their original order. Only sorts
+    child accounts within each top-level parent group.
+    If there are no top-level (depth 0) rows (e.g. IS/BS subreports),
+    sorts all rows together.
+    """
+    min_depth = min((r.depth for r in rows), default=0)
+
+    # No grouping needed — all rows are at the same level (e.g. IS/BS subreports)
+    if all(r.depth == min_depth for r in rows):
+        return sorted(rows, key=lambda r: r.abs_total, reverse=True)
+
+    result: list[hledger.BalanceRow] = []
+    group: list[hledger.BalanceRow] = []
+    parent: hledger.BalanceRow | None = None
+
+    def flush() -> None:
+        if parent is not None:
+            result.append(parent)
+            group.sort(key=lambda r: r.abs_total, reverse=True)
+            result.extend(group)
+
+    for row in rows:
+        if row.depth == min_depth:
+            flush()
+            parent = row
+            group = []
+        else:
+            group.append(row)
+    flush()
+    return result
+
+
 # ── Routes ──────────────────────────────────────────────────────────────
 
 
@@ -172,28 +207,6 @@ async def update_transaction(
         )
 
 
-@get("/balances")
-async def balances(
-    q: str = "", depth: int = 2, month: str = "", sort: str = ""
-) -> Template:
-    return Template(
-        "balances.html",
-        context={"q": q, "depth": depth, "month": month, "sort": sort},
-    )
-
-
-@get("/balances/partial")
-async def balances_partial(
-    q: str = "", depth: int = 2, month: str = "", sort: str = ""
-) -> Template:
-    rows = await hledger.balances(JOURNAL_FILE, query=q, depth=depth)
-    if sort == "amount":
-        rows.sort(key=lambda r: r.abs_total, reverse=True)
-    return Template(
-        "partials/bal_content.html",
-        context={"rows": rows, "month": month},
-    )
-
 
 @get("/incomestatement")
 async def incomestatement(
@@ -215,9 +228,9 @@ async def incomestatement_partial(
     )
     if sort == "amount":
         for sub in report.subreports:
-            sub.rows.sort(key=lambda r: r.abs_total, reverse=True)
+            sub.rows = _sort_rows_by_amount(sub.rows)
     return Template(
-        "partials/is_content.html", context={"report": report, "month": month}
+        "partials/report_content.html", context={"report": report, "month": month}
     )
 
 
@@ -242,9 +255,9 @@ async def balancesheet_partial(
     )
     if sort == "amount":
         for sub in report.subreports:
-            sub.rows.sort(key=lambda r: r.abs_total, reverse=True)
+            sub.rows = _sort_rows_by_amount(sub.rows)
     return Template(
-        "partials/bs_content.html",
+        "partials/report_content.html",
         context={"report": report, "month": month},
     )
 
@@ -289,8 +302,6 @@ app = Litestar(
         new_transaction_form,
         create_transaction,
         update_transaction,
-        balances,
-        balances_partial,
         incomestatement,
         incomestatement_partial,
         balancesheet,
