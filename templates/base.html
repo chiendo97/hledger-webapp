@@ -83,48 +83,47 @@
         ">
           <!-- View mode -->
           <div x-show="!editing">
-            <div class="flex justify-between items-center px-4 pt-2 sm:pt-4 pb-3 border-b border-border">
-              <div>
-                <h2 id="modal-title" class="text-lg font-semibold" x-text="tx.tdescription"></h2>
+            <div class="flex justify-between items-center px-4 pt-3 pb-3 border-b border-border">
+              <div class="min-w-0 mr-3">
+                <h2 id="modal-title" class="text-base font-medium truncate" x-text="tx.tdescription"></h2>
                 <div class="text-xs text-text-faint mt-0.5" x-text="tx.tdate + ((tx.tags.find(t => t.key === 'time') || {}).value ? ' · ' + tx.tags.find(t => t.key === 'time').value : '') + ' · #' + tx.tindex"></div>
               </div>
-              <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white w-8 h-8 flex items-center justify-center text-xl leading-none">&times;</button>
+              <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-faint hover:text-text w-8 h-8 flex items-center justify-center text-lg leading-none shrink-0">&times;</button>
             </div>
-            <div class="p-4 space-y-4">
-              {# Postings — primary content #}
-              <div class="space-y-2">
+            <div class="px-4 py-3 space-y-3">
+              {# Postings — primary content, colored left accent for account identity #}
+              <div>
                 <template x-for="(p, i) in tx.tpostings" :key="i">
-                  <div class="bg-surface border border-border rounded-lg px-3 py-2.5">
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm truncate pr-2" :style="'color:' + p.account_color" x-text="p.paccount"></span>
-                      <span class="font-mono text-sm font-medium whitespace-nowrap" :class="p.negative ? 'text-negative' : 'text-positive'" x-text="p.amount_display"></span>
-                    </div>
-                    <template x-if="p.balance_assertion_display">
-                      <div class="text-xs font-mono text-text-faint mt-1 text-right" x-text="'Balance: ' + p.balance_assertion_display"></div>
-                    </template>
-                    <template x-for="(pt, j) in p.tags" :key="j">
-                      <div class="text-xs text-text-faint mt-1">
-                        <span class="font-mono" x-text="pt.key + ':'"></span> <span x-text="pt.value"></span>
+                  <div class="flex py-2" :class="i < tx.tpostings.length - 1 ? 'border-b border-border' : ''">
+                    <div class="w-0.5 rounded-full shrink-0 mr-3 self-stretch" :style="'background:' + p.account_color"></div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex justify-between items-center">
+                        <span class="text-sm truncate pr-2 text-text-heading" x-text="p.paccount"></span>
+                        <span class="font-mono text-sm whitespace-nowrap" x-show="p.balance_assertion_display" x-text="'= ' + p.balance_assertion_display" class="text-text-muted"></span>
+                        <span class="font-mono text-sm whitespace-nowrap" x-show="!p.balance_assertion_display" :class="p.negative ? 'text-negative' : 'text-positive'" x-text="p.amount_display"></span>
                       </div>
-                    </template>
+                      <template x-for="(pt, j) in p.tags" :key="j">
+                        <div class="text-xs text-text-faint mt-0.5">
+                          <span class="font-mono" x-text="pt.key + ':'"></span> <span x-text="pt.value"></span>
+                        </div>
+                      </template>
+                    </div>
                   </div>
                 </template>
               </div>
               {# Tags — secondary metadata, skip 'time' since it's in header #}
               <template x-if="tx.tags.filter(t => t.key !== 'time').length > 0">
-                <div>
-                  <div class="text-xs text-text-faint uppercase tracking-widest mb-1.5">Details</div>
+                <div class="pt-1 space-y-1.5">
                   <template x-for="(tag, i) in tx.tags.filter(t => t.key !== 'time')" :key="i">
-                    <div class="flex justify-between py-1 text-sm">
-                      <span class="text-text-faint pr-4 font-mono whitespace-nowrap" x-text="tag.key"></span>
-                      <span class="text-text-muted text-right" x-text="tag.value"></span>
+                    <div class="text-xs">
+                      <div class="text-text-faint" x-text="tag.key.replaceAll('_', ' ')"></div>
+                      <div class="text-text-muted break-words" x-text="tag.value"></div>
                     </div>
                   </template>
                 </div>
               </template>
-              <div class="flex gap-2 pt-3 border-t border-border">
-                <button @click="editing = true" class="btn flex-1 text-sm">Edit</button>
-                <button @click="tx = null" class="btn-secondary flex-1 text-sm">Close</button>
+              <div class="pt-2">
+                <button @click="editing = true" class="btn-secondary w-full text-sm">Edit</button>
               </div>
             </div>
           </div>
