@@ -74,7 +74,7 @@ class Transaction(BaseModel):
         ]
 
         def _color(account: str) -> str:
-            h = int(hashlib.md5(account.encode()).hexdigest(), 16)  # noqa: S324
+            h = int(hashlib.md5(account.encode()).hexdigest(), 16)
             return colors[h % len(colors)]
 
         return json.dumps(
@@ -546,8 +546,11 @@ async def add_transaction(
             lines.append(f"    {p.account}")
     lines.append("")
     async with asyncio.Lock():
-        with open(file, "a") as f:
-            _ = f.write("\n".join(lines))
+        def _append() -> None:
+            with Path(file).open("a") as f:
+                f.write("\n".join(lines))
+
+        await asyncio.to_thread(_append)
     _invalidate_cache()
 
 
@@ -574,8 +577,7 @@ async def update_transaction(
     lines = [f"{date} {description}"]
     comment = format_comment_tags(tags)
     if comment:
-        for tag_line in comment.splitlines():
-            lines.append(f"    ; {tag_line}")
+        lines.extend(f"    ; {tag_line}" for tag_line in comment.splitlines())
     for p in postings:
         if p.amount:
             amount = _normalize_amount(p.amount)
