@@ -73,6 +73,14 @@
   @apply px-3 py-1 rounded-full text-xs bg-accent text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
+.label {
+  @apply text-xs text-text-faint uppercase tracking-widest;
+}
+
+.empty-state {
+  @apply text-text-faint text-center py-8;
+}
+
 .skeleton {
   @apply animate-pulse bg-surface-raised/50 rounded-lg;
 }
