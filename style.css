@@ -61,6 +61,10 @@
   @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-base text-text focus:border-accent-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
+.input-compact {
+  @apply bg-surface-raised border border-border-input rounded px-2 py-1.5 text-xs text-text focus:border-accent-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
+}
+
 .chip {
   @apply px-3 py-1 rounded-full text-xs bg-surface-raised text-text-muted hover:bg-surface-raised/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
