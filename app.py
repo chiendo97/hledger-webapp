@@ -228,7 +228,7 @@ async def update_transaction(
 
 @get("/incomestatement")
 async def incomestatement(
-    depth: int = 2, month: str = "", sort: str = ""
+    depth: int = 2, month: str = "", sort: str = "amount"
 ) -> Template:
     mr = _month_range(month)
     return Template(
@@ -238,7 +238,7 @@ async def incomestatement(
 
 @get("/incomestatement/partial")
 async def incomestatement_partial(
-    depth: int = 2, month: str = "", sort: str = ""
+    depth: int = 2, month: str = "", sort: str = "amount"
 ) -> Template:
     mr = _month_range(month)
     report = await hledger.income_statement(
@@ -254,7 +254,7 @@ async def incomestatement_partial(
 
 @get("/balancesheet")
 async def balancesheet(
-    depth: int = 2, month: str = "", sort: str = ""
+    depth: int = 2, month: str = "", sort: str = "amount"
 ) -> Template:
     mr = _month_range(month)
     return Template(
@@ -265,7 +265,7 @@ async def balancesheet(
 
 @get("/balancesheet/partial")
 async def balancesheet_partial(
-    depth: int = 2, month: str = "", sort: str = ""
+    depth: int = 2, month: str = "", sort: str = "amount"
 ) -> Template:
     mr = _month_range(month)
     report = await hledger.balance_sheet(
