@@ -85,7 +85,7 @@
           <div x-show="!editing">
             <div class="flex justify-between items-center px-4 pt-3 pb-3 border-b border-border">
               <div class="min-w-0 mr-3">
-                <h2 id="modal-title" class="text-base font-medium truncate" x-text="tx.tdescription"></h2>
+                <h2 id="modal-title" class="text-base font-medium truncate" dir="rtl" style="text-align:left" x-text="tx.tdescription"></h2>
                 <div class="text-xs text-text-faint mt-0.5" x-text="tx.tdate + ((tx.tags.find(t => t.key === 'time') || {}).value ? ' · ' + tx.tags.find(t => t.key === 'time').value : '') + ' · #' + tx.tindex"></div>
               </div>
               <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-faint hover:text-text w-8 h-8 flex items-center justify-center text-lg leading-none shrink-0">&times;</button>

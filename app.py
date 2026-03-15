@@ -1,15 +1,17 @@
 """hledger web app — Litestar + Jinja2 + HTMX."""
 
+import datetime
 import hashlib
 import os
-from datetime import date as dt_date
 from pathlib import Path
 
 from litestar import Litestar, Request, get, post
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.datastructures import State
 from litestar.response import Redirect, Template
-from litestar.static_files import create_static_files_router  # pyright: ignore[reportUnknownVariableType]
+from litestar.static_files import (
+    create_static_files_router,  # pyright: ignore[reportUnknownVariableType]
+)
 from litestar.template import TemplateConfig
 
 import hledger
@@ -54,7 +56,7 @@ _ACCOUNT_COLORS = [
 
 def _account_color(account: str) -> str:
     """Deterministic color for an account name."""
-    h = int(hashlib.md5(account.encode()).hexdigest(), 16)  # noqa: S324
+    h = int(hashlib.md5(account.encode()).hexdigest(), 16)
     return _ACCOUNT_COLORS[h % len(_ACCOUNT_COLORS)]
 
 
@@ -72,7 +74,7 @@ def _account_short(account: str) -> str:
 def _month_range(month: str) -> dict[str, str]:
     """Given a 'YYYY-MM' string (or empty for current month), return month context dict."""
     if not month:
-        today = dt_date.today()
+        today = datetime.datetime.now(tz=datetime.UTC).date()
         month = today.strftime("%Y-%m")
     year, mon = int(month[:4]), int(month[5:7])
     begin = f"{year}-{mon:02d}-01"
@@ -330,9 +332,10 @@ app = Litestar(
 )
 
 # Register Jinja2 globals
-engine = app.template_engine  # pyright: ignore[reportAny]
-engine.engine.globals["account_color"] = _account_color  # pyright: ignore[reportAny, reportUnknownMemberType]
-engine.engine.globals["account_short"] = _account_short  # pyright: ignore[reportAny, reportUnknownMemberType]
+_engine = app.template_engine  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+assert isinstance(_engine, JinjaTemplateEngine)
+_engine.engine.globals["account_color"] = _account_color  # pyright: ignore[reportArgumentType]
+_engine.engine.globals["account_short"] = _account_short  # pyright: ignore[reportArgumentType]
 
 if __name__ == "__main__":
     import uvicorn
