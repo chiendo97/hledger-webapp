@@ -50,11 +50,11 @@
 /* ===== Component Classes ===== */
 
 .card {
-  @apply bg-surface-raised border border-border rounded-lg p-3 cursor-pointer hover:border-border-hover active:bg-surface-inset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
+  @apply bg-surface-raised border border-border rounded-lg p-3 cursor-pointer hover:border-border-hover active:bg-surface-inset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text transition-all duration-150 ease-out active:scale-[0.98];
 }
 
 .btn {
-  @apply bg-accent hover:bg-accent-hover active:bg-accent-hover text-white rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
+  @apply bg-accent hover:bg-accent-hover active:bg-accent-hover text-white rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text transition-colors duration-150;
 }
 
 .input {
@@ -86,11 +86,11 @@
 }
 
 .btn-secondary {
-  @apply bg-surface-button hover:bg-surface-button-hover active:bg-surface-button-hover text-text rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
+  @apply bg-surface-button hover:bg-surface-button-hover active:bg-surface-button-hover text-text rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text transition-colors duration-150;
 }
 
 .btn-success {
-  @apply bg-success hover:bg-success-hover active:bg-success-hover text-white rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
+  @apply bg-success hover:bg-success-hover active:bg-success-hover text-white rounded-lg px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text transition-colors duration-150;
 }
 
 /* ===== Preserved CSS (from old static/style.css) ===== */
@@ -144,6 +144,27 @@ body {
   100% { width: 90%; }
 }
 
+/* Modal entrance */
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+#tx-modal {
+  animation: overlay-in 150ms ease-out;
+}
+#tx-dialog {
+  animation: modal-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Bottom nav link transitions */
+nav.fixed a {
+  transition: color 150ms ease;
+}
+
 /* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   #loading-bar.active {
@@ -155,5 +176,11 @@ body {
   }
   .skeleton {
     animation: none;
+  }
+  #tx-modal, #tx-dialog {
+    animation: none;
+  }
+  .card {
+    transition: none;
   }
 }
