@@ -15,9 +15,9 @@
     <div class="flex justify-between text-xs">
       <span class="text-text-muted truncate mr-2">{{ r.account }}</span>
       {% if r.running %}
-      <span class="font-mono whitespace-nowrap text-text-faint">= {{ r.running }}</span>
+      <span class="whitespace-nowrap text-text-faint">= {{ r.running }}</span>
       {% else %}
-      <span class="font-mono whitespace-nowrap">{{ r.amount }}</span>
+      <span class="whitespace-nowrap">{{ r.amount }}</span>
       {% endif %}
     </div>
   </div>

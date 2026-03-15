@@ -16,7 +16,7 @@
          data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
       <div class="flex justify-between items-start mb-1 min-w-0">
         <span class="text-sm font-medium truncate mr-2" style="color: {{ account_color(ns.primary.paccount) if ns.primary else 'inherit' }}">{{ account_short(ns.primary.paccount) if ns.primary else tx.tdescription }}</span>
-        <span class="font-mono text-sm font-medium whitespace-nowrap {% if ns.primary and ns.primary.pamount and ns.primary.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ ns.primary.amount_display if ns.primary else '' }}</span>
+        <span class="text-sm font-medium whitespace-nowrap {% if ns.primary and ns.primary.pamount and ns.primary.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ ns.primary.amount_display if ns.primary else '' }}</span>
       </div>
       <div class="text-xs text-text-muted truncate mb-2">{{ tx.tdescription }}</div>
       <div class="flex justify-between items-center text-xs text-text-faint">

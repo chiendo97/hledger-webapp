@@ -99,12 +99,12 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex justify-between items-center">
                         <span class="text-sm truncate pr-2 text-text-heading" x-text="p.paccount"></span>
-                        <span class="font-mono text-sm whitespace-nowrap" x-show="p.balance_assertion_display" x-text="'= ' + p.balance_assertion_display" class="text-text-muted"></span>
-                        <span class="font-mono text-sm whitespace-nowrap" x-show="!p.balance_assertion_display" :class="p.negative ? 'text-negative' : 'text-positive'" x-text="p.amount_display"></span>
+                        <span class="text-sm whitespace-nowrap" x-show="p.balance_assertion_display" x-text="'= ' + p.balance_assertion_display" class="text-text-muted"></span>
+                        <span class="text-sm whitespace-nowrap" x-show="!p.balance_assertion_display" :class="p.negative ? 'text-negative' : 'text-positive'" x-text="p.amount_display"></span>
                       </div>
                       <template x-for="(pt, j) in p.tags" :key="j">
                         <div class="text-xs text-text-faint mt-0.5">
-                          <span class="font-mono" x-text="pt.key + ':'"></span> <span x-text="pt.value"></span>
+                          <span x-text="pt.key + ':'"></span> <span x-text="pt.value"></span>
                         </div>
                       </template>
                     </div>
@@ -163,7 +163,7 @@
                   <template x-for="(tag, i) in editTags" :key="i">
                     <div class="flex gap-2">
                       <input type="text" :name="'tag_key_' + i" x-model="tag.key"
-                             class="input-compact min-w-0 w-2/5 font-mono" placeholder="key">
+                             class="input-compact min-w-0 w-2/5" placeholder="key">
                       <input type="text" :name="'tag_value_' + i" x-model="tag.value"
                              class="input-compact min-w-0 flex-1" placeholder="value">
                     </div>
@@ -180,7 +180,7 @@
                     <input type="text" :name="'account_' + i" x-model="p.account"
                            class="input-compact min-w-0 flex-1" placeholder="Account">
                     <input type="text" :name="'amount_' + i" x-model="p.amount"
-                           class="input-compact min-w-0 w-2/5 font-mono" placeholder="Amount">
+                           class="input-compact min-w-0 w-2/5" placeholder="Amount">
                     <template x-if="p.balance_assertion">
                       <input type="hidden" :name="'balance_assertion_' + i" :value="p.balance_assertion">
                     </template>
