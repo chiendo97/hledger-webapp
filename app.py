@@ -66,9 +66,14 @@ def _account_short(account: str) -> str:
     'expense:drink:coffee' → 'Coffee'
     'asset:vietinbank:checking' → 'Checking'
     'revenue:salary' → 'Salary'
+    'expense:food:misc' → 'Food'
     """
-    leaf = account.rsplit(":", 1)[-1] if ":" in account else account
-    return leaf.replace("_", " ").title()
+    parts = account.split(":")
+    # Walk from the rightmost segment leftward, skipping "misc"
+    for part in reversed(parts):
+        if part.lower() != "misc":
+            return part.replace("_", " ").title()
+    return parts[-1].replace("_", " ").title()
 
 
 def _month_range(month: str) -> dict[str, str]:
