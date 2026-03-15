@@ -4,7 +4,7 @@
   <div class="px-4 py-4 text-center">
     <div class="text-xs text-text-faint uppercase tracking-widest mb-2">Net</div>
     {% for item in report.grand_total_items %}
-    <div class="tracking-tight {% if report.grand_total_items|length > 1 %}text-xl font-semibold{% else %}text-3xl font-bold{% endif %} {% if item.startswith('-') %}text-negative{% else %}text-positive{% endif %}">{{ item }}</div>
+    <div class="tracking-tight {% if report.grand_total_items|length > 1 %}text-xl font-semibold{% else %}text-2xl font-bold{% endif %} {% if item.startswith('-') %}text-negative{% else %}text-positive{% endif %}">{{ item }}</div>
     {% endfor %}
   </div>
   {# Revenue vs Expenses breakdown bar #}

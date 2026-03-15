@@ -58,7 +58,7 @@
 }
 
 .input {
-  @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-base text-text focus:border-accent-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
+  @apply bg-surface-raised border border-border-input rounded px-3 py-2 text-sm text-text focus:border-accent-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text;
 }
 
 .input-compact {
