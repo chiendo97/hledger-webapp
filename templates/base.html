@@ -9,20 +9,22 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#111827">
   <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
   <title>{% block title %}hledger{% endblock %}</title>
   <link rel="stylesheet" href="/static/dist.css">
+  <style>[x-cloak] { display: none !important; }</style>
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js" integrity="sha384-LXWjKwDZz29o7TduNe+r/UxaolHh5FsSvy2W7bDHSZ8jJeGgDeuNnsDNHoxpSgDi" crossorigin="anonymous"></script>
 </head>
 <body hx-boost="true" class="bg-surface text-text min-h-screen font-mono" style="padding-bottom: calc(5rem + env(safe-area-inset-bottom))">
   <div id="loading-bar"></div>
   <!-- Top bar -->
-  <header class="sticky top-0 z-40 bg-surface-raised border-b border-border px-4 h-12 flex items-center justify-center">
+  <header class="sticky top-0 z-40 bg-surface-raised border-b border-border px-4 py-3 flex items-center justify-center min-h-12">
     <h1 class="text-lg font-semibold leading-none">{% block header %}hledger{% endblock %}</h1>
   </header>
 
   <!-- Pull-to-refresh indicator -->
-  <div id="ptr-indicator" class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-200" style="transform: translateY(-100%)">
+  <div id="ptr-indicator" class="fixed left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-200" style="top: env(safe-area-inset-top, 0px); transform: translateY(-100%)">
     <div class="bg-surface-inset text-text-heading text-xs px-4 py-2 rounded-b-lg flex items-center gap-2">
       <svg id="ptr-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
       <span id="ptr-text">Pull to refresh</span>
@@ -72,7 +74,7 @@
        @keydown.escape.window="tx = null; if (_prevFocus) _prevFocus.focus()">
     <template x-if="tx">
       <div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay" @click.self="tx = null; if (_prevFocus) _prevFocus.focus()">
-        <div id="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" class="bg-surface-raised border border-border-input rounded-lg w-full max-w-lg lg:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto focus:outline-none" @click.stop @keydown.tab="
+        <div id="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" class="bg-surface-raised border border-border-input rounded-lg w-full max-w-lg lg:max-w-2xl mx-4 max-h-[85vh] overflow-y-auto focus:outline-none" style="margin-top: env(safe-area-inset-top, 0px)" @click.stop @keydown.tab="
           const focusable = [...$el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\'-1\'])')];
           if (!focusable.length) return;
           const first = focusable[0], last = focusable[focusable.length - 1];

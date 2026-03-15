@@ -13,7 +13,7 @@
   <input id="tx-search" type="text" name="q" value="{{ q }}" placeholder="Search (account, desc)..."
          class="input rounded-lg w-full" onchange="this.form.requestSubmit()">
   <label for="tx-source" class="sr-only">Journal source</label>
-  <select id="tx-source" name="source" class="input rounded-lg text-sm w-full" onchange="this.form.requestSubmit()">
+  <select id="tx-source" name="source" class="input rounded-lg w-full" onchange="this.form.requestSubmit()">
     <option value="">All sources</option>
     {% for s in sources %}
     <option value="{{ s }}" {% if s == source %}selected{% endif %}>{{ s }}</option>
