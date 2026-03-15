@@ -3,48 +3,48 @@
 /* ===== Theme Tokens ===== */
 
 @theme {
-  /* Surfaces */
-  --color-surface: #030712;
-  --color-surface-raised: #111827;
-  --color-surface-overlay: #000000b3;
+  /* Surfaces (gruvbox dark) */
+  --color-surface: #1d2021;
+  --color-surface-raised: #282828;
+  --color-surface-overlay: #1d2021b3;
 
   /* Borders */
-  --color-border: #1f2937;
-  --color-border-hover: #4b5563;
-  --color-border-input: #374151;
+  --color-border: #3c3836;
+  --color-border-hover: #665c54;
+  --color-border-input: #504945;
 
-  /* Text */
-  --color-text: #f3f4f6;
-  --color-text-muted: #9ca3af;
-  --color-text-faint: #6b7280;
-  --color-text-heading: #d1d5db;
+  /* Text (gruvbox fg) */
+  --color-text: #ebdbb2;
+  --color-text-muted: #a89984;
+  --color-text-faint: #928374;
+  --color-text-heading: #d5c4a1;
 
-  /* Accent */
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-text: #60a5fa;
-  --color-accent-light: #3b82f6;
+  /* Accent (gruvbox blue) */
+  --color-accent: #458588;
+  --color-accent-hover: #076678;
+  --color-accent-text: #83a598;
+  --color-accent-light: #83a598;
 
   /* Secondary surfaces */
-  --color-surface-button: #374151;
-  --color-surface-button-hover: #4b5563;
-  --color-surface-inset: #1f2937;
+  --color-surface-button: #504945;
+  --color-surface-button-hover: #665c54;
+  --color-surface-inset: #32302f;
 
-  /* Success */
-  --color-success: #16a34a;
-  --color-success-hover: #22c55e;
+  /* Success (gruvbox aqua) */
+  --color-success: #689d6a;
+  --color-success-hover: #8ec07c;
 
-  /* Financial (semantic) */
-  --color-positive: #4ade80;
-  --color-negative: #f87171;
+  /* Financial (semantic — gruvbox green/red) */
+  --color-positive: #b8bb26;
+  --color-negative: #fb4934;
 
-  /* Warning */
-  --color-warning: #eab308;
-  --color-warning-text: #facc15;
+  /* Warning (gruvbox yellow) */
+  --color-warning: #d79921;
+  --color-warning-text: #fabd2f;
 
   /* Interactive text */
-  --color-text-link-danger: #fca5a5;
-  --color-text-link-accent: #93c5fd;
+  --color-text-link-danger: #fb4934;
+  --color-text-link-accent: #83a598;
 }
 
 /* ===== Component Classes ===== */

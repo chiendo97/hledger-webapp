@@ -27,30 +27,22 @@ STATIC_DIR = str(Path(__file__).resolve().parent / "static")
 
 # Fixed palette — maximally distinct colors readable on dark backgrounds
 _ACCOUNT_COLORS = [
-    "#e06c75",  # red
-    "#61afef",  # blue
-    "#98c379",  # green
-    "#e5c07b",  # yellow
-    "#c678dd",  # purple
-    "#56b6c2",  # cyan
-    "#d19a66",  # orange
-    "#be5046",  # rust
-    "#7ec8e3",  # sky
-    "#c3e88d",  # lime
-    "#f78c6c",  # coral
-    "#89ddff",  # ice blue
-    "#ffcb6b",  # gold
-    "#f07178",  # salmon
-    "#82aaff",  # periwinkle
-    "#c792ea",  # lavender
-    "#4ec9b0",  # mint
-    "#d7ba7d",  # tan
-    "#b392f0",  # violet
-    "#85e89d",  # pastel green
-    "#ffab70",  # peach
-    "#79b8ff",  # cornflower
-    "#e2c08d",  # wheat
-    "#ff7b72",  # light red
+    "#fb4934",  # red
+    "#83a598",  # blue
+    "#b8bb26",  # green
+    "#fabd2f",  # yellow
+    "#d3869b",  # purple
+    "#8ec07c",  # aqua
+    "#fe8019",  # orange
+    "#cc241d",  # dark red
+    "#458588",  # dark blue
+    "#98971a",  # dark green
+    "#d79921",  # dark yellow
+    "#b16286",  # dark purple
+    "#689d6a",  # dark aqua
+    "#d65d0e",  # dark orange
+    "#ebdbb2",  # fg
+    "#a89984",  # gray
 ]
 
 
