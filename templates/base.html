@@ -74,53 +74,54 @@
        @keydown.escape.window="tx = null; if (_prevFocus) _prevFocus.focus()">
     <template x-if="tx">
       <div id="tx-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay" @click.self="tx = null; if (_prevFocus) _prevFocus.focus()">
-        <div id="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" class="bg-surface-raised border border-border-input rounded-lg w-full max-w-lg lg:max-w-2xl mx-4 max-h-[85vh] overflow-y-auto focus:outline-none" style="margin-top: env(safe-area-inset-top, 0px)" @click.stop @keydown.tab="
+        <div id="tx-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" class="bg-surface-raised border border-border-input rounded-lg w-full max-w-lg lg:max-w-2xl mx-4 max-h-[85vh] overflow-y-auto focus:outline-none" @click.stop @keydown.tab="
           const focusable = [...$el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\'-1\'])')];
           if (!focusable.length) return;
           const first = focusable[0], last = focusable[focusable.length - 1];
           if ($event.shiftKey && document.activeElement === first) { $event.preventDefault(); last.focus(); }
           else if (!$event.shiftKey && document.activeElement === last) { $event.preventDefault(); first.focus(); }
         ">
-
           <!-- View mode -->
           <div x-show="!editing">
-            <div class="flex justify-between items-center p-4 border-b border-border">
-              <h2 id="modal-title" class="text-lg font-semibold" x-text="'Transaction #' + tx.tindex"></h2>
+            <div class="flex justify-between items-center px-4 pt-2 sm:pt-4 pb-3 border-b border-border">
+              <div>
+                <h2 id="modal-title" class="text-lg font-semibold" x-text="tx.tdescription"></h2>
+                <div class="text-xs text-text-faint mt-0.5" x-text="tx.tdate + ((tx.tags.find(t => t.key === 'time') || {}).value ? ' · ' + tx.tags.find(t => t.key === 'time').value : '') + ' · #' + tx.tindex"></div>
+              </div>
               <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white w-8 h-8 flex items-center justify-center text-xl leading-none">&times;</button>
             </div>
-            <div class="p-4 space-y-3">
-              <div>
-                <div class="flex justify-between border-b border-border py-1.5 text-sm">
-                  <span class="text-text-muted pr-4 whitespace-nowrap">Date</span>
-                  <span class="text-text" x-text="tx.tdate + ((tx.tags.find(t => t.key === 'time') || {}).value ? ' ' + tx.tags.find(t => t.key === 'time').value : '')"></span>
-                </div>
-                <div class="flex justify-between border-b border-border py-1.5 text-sm">
-                  <span class="text-text-muted pr-4 whitespace-nowrap">Description</span>
-                  <span class="text-text text-right break-all" x-text="tx.tdescription"></span>
-                </div>
-                <template x-for="(tag, i) in tx.tags" :key="i">
-                  <div class="flex justify-between border-b border-border py-1.5 text-sm">
-                    <span class="text-text-faint pr-4 font-mono whitespace-nowrap" x-text="tag.key"></span>
-                    <span class="text-text-heading text-right" x-text="tag.value"></span>
-                  </div>
-                </template>
-              </div>
-              <div>
+            <div class="p-4 space-y-4">
+              {# Postings — primary content #}
+              <div class="space-y-2">
                 <template x-for="(p, i) in tx.tpostings" :key="i">
-                  <div>
-                    <div class="flex justify-between border-b border-border py-1.5 text-sm">
-                      <span class="pr-2 break-words" :style="'color:' + p.account_color" x-text="p.paccount"></span>
-                      <span x-show="p.balance_assertion_display" class="font-mono whitespace-nowrap text-text-faint" x-text="'= ' + (p.balance_assertion_display || '')"></span>
-                      <span x-show="!p.balance_assertion_display" class="font-mono whitespace-nowrap" :class="p.negative ? 'text-negative' : 'text-positive'" x-text="p.amount_display"></span>
+                  <div class="bg-surface border border-border rounded-lg px-3 py-2.5">
+                    <div class="flex justify-between items-center">
+                      <span class="text-sm truncate pr-2" :style="'color:' + p.account_color" x-text="p.paccount"></span>
+                      <span class="font-mono text-sm font-medium whitespace-nowrap" :class="p.negative ? 'text-negative' : 'text-positive'" x-text="p.amount_display"></span>
                     </div>
+                    <template x-if="p.balance_assertion_display">
+                      <div class="text-xs font-mono text-text-faint mt-1 text-right" x-text="'Balance: ' + p.balance_assertion_display"></div>
+                    </template>
                     <template x-for="(pt, j) in p.tags" :key="j">
-                      <div class="pl-4 py-0.5 text-xs text-text-faint">
-                        <span class="font-mono" x-text="pt.key"></span> <span x-text="pt.value"></span>
+                      <div class="text-xs text-text-faint mt-1">
+                        <span class="font-mono" x-text="pt.key + ':'"></span> <span x-text="pt.value"></span>
                       </div>
                     </template>
                   </div>
                 </template>
               </div>
+              {# Tags — secondary metadata, skip 'time' since it's in header #}
+              <template x-if="tx.tags.filter(t => t.key !== 'time').length > 0">
+                <div>
+                  <div class="text-xs text-text-faint uppercase tracking-widest mb-1.5">Details</div>
+                  <template x-for="(tag, i) in tx.tags.filter(t => t.key !== 'time')" :key="i">
+                    <div class="flex justify-between py-1 text-sm">
+                      <span class="text-text-faint pr-4 font-mono whitespace-nowrap" x-text="tag.key"></span>
+                      <span class="text-text-muted text-right" x-text="tag.value"></span>
+                    </div>
+                  </template>
+                </div>
+              </template>
               <div class="flex gap-2 pt-3 border-t border-border">
                 <button @click="editing = true" class="btn flex-1 text-sm">Edit</button>
                 <button @click="tx = null" class="btn-secondary flex-1 text-sm">Close</button>
@@ -130,7 +131,7 @@
 
           <!-- Edit mode -->
           <div x-show="editing">
-            <div class="flex justify-between items-center p-4 border-b border-border">
+            <div class="flex justify-between items-center px-4 pt-2 sm:pt-4 pb-3 border-b border-border">
               <h2 class="text-lg font-semibold">Edit Transaction</h2>
               <button @click="tx = null; if (_prevFocus) _prevFocus.focus()" aria-label="Close" class="text-text-muted hover:text-white w-8 h-8 flex items-center justify-center text-xl leading-none">&times;</button>
             </div>
