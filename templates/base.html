@@ -227,6 +227,8 @@
       startY = e.touches[0].clientY;
       pulling = true;
       distance = 0;
+    } else {
+      pulling = false;
     }
   }, {passive: true});
 
@@ -252,7 +254,7 @@
     arrow.style.transform = '';
     text.textContent = 'Pull to refresh';
     if(distance >= threshold){
-      window.dispatchEvent(new Event('refresh'));
+      window.location.reload();
     }
   });
 })();

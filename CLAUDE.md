@@ -52,3 +52,24 @@ Requires `hledger` CLI on PATH and Python 3.12+. Journal file defaults to `../20
 - **Centralized theming**: All colors use semantic tokens defined in `style.css` via Tailwind v4 `@theme` (e.g. `bg-surface-raised`, `text-text-muted`, `text-negative`). Repeated UI patterns use `@apply` component classes (`.card`, `.btn`, `.chip`, `.skeleton`). To restyle the app, edit `style.css` — no template changes needed.
 - **iOS PWA support**: `viewport-fit=cover` with `env(safe-area-inset-*)` CSS for proper rendering in standalone mode (respects notch and home indicator).
 - **No test suite**: There are currently no tests. The app is validated by running it against a real journal file.
+
+## Design Context
+
+### Users
+Personal finance user checking balances, reviewing transactions, and tracking budgets on mobile. Context is quick glances — open the app, find the number, close. The job is financial awareness without friction.
+
+### Brand Personality
+Technical, efficient, honest. Like a well-configured terminal that happens to look good.
+
+### Aesthetic Direction
+- **Visual tone**: Dark, minimal, technical — inspired by gruvbox color sensibility
+- **References**: Monzo/Revolut for mobile-first financial hierarchy and information density
+- **Anti-references**: No corporate dashboards, no skeuomorphic textures/shadows, no over-stripped minimalism that sacrifices usability
+- **Theme**: Dark only. Monospace throughout (`font-mono` on body)
+
+### Design Principles
+1. **Data first** — Numbers are the content. Typography, color, and layout serve readability of financial data above all else.
+2. **Efficient density** — Show what matters without clutter. Every element earns its space. Get in, check numbers, get out.
+3. **Consistent scale** — Use the established typographic scale (`text-2xl` > `text-xl` > `text-lg` > `text-base` > `text-sm` > `text-xs`) and component classes (`.card`, `.btn`, `.input`, `.chip`, `.label`, `.empty-state`). No one-off sizes or styles.
+4. **Semantic color only** — All colors come from `style.css` theme tokens. Green means positive, red means negative, blue means interactive. No decorative color.
+5. **Mobile-native feel** — Designed for thumb-reach on phones. Bottom nav, touch targets >= 44px, pull-to-refresh. PWA standalone mode is the primary experience.
