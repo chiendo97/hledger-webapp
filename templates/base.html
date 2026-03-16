@@ -24,7 +24,7 @@
   </header>
 
   <!-- Pull-to-refresh indicator -->
-  <div id="ptr-indicator" class="fixed left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-200" style="top: env(safe-area-inset-top, 0px); transform: translateY(-100%)">
+  <div id="ptr-indicator" hx-preserve class="fixed left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-200" style="top: env(safe-area-inset-top, 0px); transform: translateY(-100%)">
     <div class="bg-surface-inset text-text-heading text-xs px-4 py-2 rounded-b-lg flex items-center gap-2">
       <svg id="ptr-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
       <span id="ptr-text">Pull to refresh</span>
@@ -215,59 +215,59 @@
 })();
 </script>
 <script>
-(function(){
-  const threshold = 80;
-  let startY = 0, pulling = false, distance = 0;
+if(!window.__ptrInit){
+  window.__ptrInit = true;
+  (function(){
+    const threshold = 80;
+    const indicator = document.getElementById('ptr-indicator');
+    const arrow = document.getElementById('ptr-arrow');
+    const text = document.getElementById('ptr-text');
+    let startY = 0, pulling = false, distance = 0;
 
-  function getEls() {
-    return {
-      indicator: document.getElementById('ptr-indicator'),
-      arrow: document.getElementById('ptr-arrow'),
-      text: document.getElementById('ptr-text')
-    };
-  }
-
-  document.addEventListener('touchstart', function(e){
-    if(window.scrollY === 0 && !document.getElementById('tx-modal')){
-      startY = e.touches[0].clientY;
-      pulling = true;
-      distance = 0;
-    } else {
+    function reset(){
       pulling = false;
+      indicator.style.transform = 'translateY(-100%)';
+      arrow.style.transform = '';
+      text.textContent = 'Pull to refresh';
     }
-  }, {passive: true});
 
-  document.addEventListener('touchmove', function(e){
-    if(!pulling) return;
-    distance = Math.max(0, e.touches[0].clientY - startY);
-    if(distance === 0) return;
-    var els = getEls();
-    if(!els.indicator) return;
-    var progress = Math.min(distance / threshold, 1);
-    els.indicator.style.transform = 'translateY(' + (progress * 100 - 100) + '%)';
-    if(distance >= threshold){
-      els.arrow.style.transform = 'rotate(180deg)';
-      els.text.textContent = 'Release to refresh';
-    } else {
-      els.arrow.style.transform = '';
-      els.text.textContent = 'Pull to refresh';
-    }
-  }, {passive: true});
+    document.addEventListener('touchstart', function(e){
+      if(window.scrollY === 0 && !document.getElementById('tx-modal')){
+        startY = e.touches[0].clientY;
+        pulling = true;
+        distance = 0;
+      } else {
+        pulling = false;
+      }
+    }, {passive: true});
 
-  document.addEventListener('touchend', function(){
-    if(!pulling) return;
-    pulling = false;
-    var els = getEls();
-    if(els.indicator){
-      els.indicator.style.transform = 'translateY(-100%)';
-      els.arrow.style.transform = '';
-      els.text.textContent = 'Pull to refresh';
-    }
-    if(distance >= threshold){
-      window.location.reload();
-    }
-  });
-})();
+    document.addEventListener('touchmove', function(e){
+      if(!pulling) return;
+      distance = Math.max(0, e.touches[0].clientY - startY);
+      if(distance === 0) return;
+      var progress = Math.min(distance / threshold, 1);
+      indicator.style.transform = 'translateY(' + (progress * 100 - 100) + '%)';
+      if(distance >= threshold){
+        arrow.style.transform = 'rotate(180deg)';
+        text.textContent = 'Release to refresh';
+      } else {
+        arrow.style.transform = '';
+        text.textContent = 'Pull to refresh';
+      }
+    }, {passive: true});
+
+    document.addEventListener('touchend', function(){
+      if(!pulling) return;
+      var triggered = distance >= threshold;
+      reset();
+      if(triggered) window.location.reload();
+    });
+
+    document.addEventListener('touchcancel', function(){
+      reset();
+    });
+  })();
+}
 </script>
 </body>
 </html>
