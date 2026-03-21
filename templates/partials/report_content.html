@@ -40,7 +40,7 @@
   <div class="text-sm">
     {% for row in sub.rows %}
     <a href="/register?account={{ row.name }}{% if month %}&month={{ month }}{% endif %}"
-       class="flex border-b border-border hover:bg-surface-raised/50 py-1.5 {% if row.depth == 0 %}font-medium{% endif %}">
+       class="flex items-center border-b border-border hover:bg-surface-raised/50 py-1.5 {% if row.depth == 0 %}font-medium{% endif %}">
       <div class="w-3/5 min-w-0 pr-2 truncate {% if row.depth == 0 %}text-text-heading{% else %}text-text-muted{% endif %}" style="padding-left: {{ row.depth * 16 }}px">{{ row.name }}</div>
       <div class="w-2/5 pl-2 text-right whitespace-nowrap overflow-hidden text-ellipsis">
         {% if row.amount_items|length > 1 %}
@@ -53,7 +53,7 @@
       </div>
     </a>
     {% endfor %}
-    <div class="flex py-2 border-t-2 border-border-hover">
+    <div class="flex items-center py-2 border-t-2 border-border-hover">
       <div class="w-3/5 pr-2 font-bold text-text-heading">Total</div>
       <div class="w-2/5 pl-2 font-bold text-right whitespace-nowrap text-text">
         {% if sub.total_items|length > 1 %}
