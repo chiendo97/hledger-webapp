@@ -1,7 +1,7 @@
 {% for group in txs | groupby('tdate') | reverse %}
   <div class="flex items-center gap-3 {% if not loop.first %}mt-6{% endif %} mb-3">
     <div class="flex-1 border-t border-border-hover"></div>
-    <span class="text-sm font-medium text-text-heading whitespace-nowrap">{{ group.grouper }}</span>
+    <span class="text-sm font-medium text-text-heading whitespace-nowrap">{{ group.grouper | friendly_date }}</span>
     <div class="flex-1 border-t border-border-hover"></div>
   </div>
   <div class="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-3">
@@ -15,10 +15,10 @@
     <div class="card" role="button" tabindex="0"
          data-tx="{{ tx.view_json | e }}" onclick="window.dispatchEvent(new CustomEvent('show-tx',{detail:this.dataset.tx}))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
       <div class="flex justify-between items-start mb-1 min-w-0">
-        <span class="text-sm font-medium truncate mr-2" style="color: {{ account_color(ns.primary.paccount) if ns.primary else 'inherit' }}">{{ account_short(ns.primary.paccount) if ns.primary else tx.tdescription }}</span>
+        <span class="text-sm font-medium truncate mr-2" style="color: {{ ns.primary.paccount | account_color if ns.primary else 'inherit' }}">{{ ns.primary.paccount | account_short if ns.primary else tx.tdescription }}</span>
         <span class="text-sm font-medium whitespace-nowrap {% if ns.primary and ns.primary.pamount and ns.primary.pamount[0].aquantity.floatingPoint < 0 %}text-negative{% else %}text-positive{% endif %}">{{ ns.primary.amount_display if ns.primary else '' }}</span>
       </div>
-      <div class="text-xs text-text-muted truncate mb-2">{{ tx.tdescription }}</div>
+      <div class="text-xs text-text-muted truncate mb-2" dir="rtl" style="text-align:left">{{ tx.tdescription }}</div>
       <div class="flex justify-between items-center text-xs text-text-faint">
         <span>{% for t in tx.tags %}{% if t.key == 'time' %}{{ t.value }}{% endif %}{% endfor %}</span>
         <span>#{{ tx.tindex }}</span>

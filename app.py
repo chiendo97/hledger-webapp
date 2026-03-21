@@ -68,6 +68,22 @@ def _account_short(account: str) -> str:
     return parts[-1].replace("_", " ").title()
 
 
+def _friendly_date(date_str: str) -> str:
+    """Return 'Today', 'Yesterday', or the original date string."""
+    today = datetime.date.today()
+    if date_str == str(today):
+        return "Today"
+    if date_str == str(today - datetime.timedelta(days=1)):
+        return "Yesterday"
+    return date_str
+
+
+def _register_template_filters(engine: JinjaTemplateEngine) -> None:
+    engine.engine.filters["account_color"] = _account_color
+    engine.engine.filters["account_short"] = _account_short
+    engine.engine.filters["friendly_date"] = _friendly_date
+
+
 def _month_range(month: str) -> dict[str, str]:
     """Given a 'YYYY-MM' string (or empty for current month), return month context dict."""
     if not month:
@@ -325,14 +341,9 @@ app = Litestar(
     template_config=TemplateConfig(
         directory=Path(TEMPLATES_DIR),
         engine=JinjaTemplateEngine,
+        engine_callback=_register_template_filters,
     ),
 )
-
-# Register Jinja2 globals
-_engine = app.template_engine  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
-assert isinstance(_engine, JinjaTemplateEngine)
-_engine.engine.globals["account_color"] = _account_color  # pyright: ignore[reportArgumentType]
-_engine.engine.globals["account_short"] = _account_short  # pyright: ignore[reportArgumentType]
 
 if __name__ == "__main__":
     import uvicorn
