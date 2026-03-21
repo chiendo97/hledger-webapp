@@ -111,38 +111,29 @@ def _month_range(month: str) -> dict[str, str]:
 
 
 def _sort_rows_by_amount(rows: list[hledger.BalanceRow]) -> list[hledger.BalanceRow]:
-    """Sort rows by amount within each top-level account group.
+    """Sort rows by amount, keeping children grouped under their parent.
 
-    Keeps top-level accounts in their original order. Only sorts
-    child accounts within each top-level parent group.
-    If there are no top-level (depth 0) rows (e.g. IS/BS subreports),
-    sorts all rows together.
+    Builds a sort key per row so that each account inherits its parent's
+    sort position. For "expense:family:meo", the key is
+    (-family_abs_total, -meo_abs_total), ensuring family's children stay
+    together and are sorted by amount within the family group.
     """
-    min_depth = min((r.depth for r in rows), default=0)
+    if not rows:
+        return rows
 
-    # No grouping needed — all rows are at the same level (e.g. IS/BS subreports)
-    if all(r.depth == min_depth for r in rows):
-        return sorted(rows, key=lambda r: r.abs_total, reverse=True)
+    # Build lookup: account name → abs_total
+    totals = {r.name: r.abs_total for r in rows}
 
-    result: list[hledger.BalanceRow] = []
-    group: list[hledger.BalanceRow] = []
-    parent: hledger.BalanceRow | None = None
+    def sort_key(row: hledger.BalanceRow) -> tuple[int, ...]:
+        parts = row.name.split(":")
+        # For each prefix depth, look up that ancestor's abs_total
+        key: list[int] = []
+        for i in range(1, len(parts) + 1):
+            ancestor = ":".join(parts[:i])
+            key.append(-totals.get(ancestor, 0))
+        return tuple(key)
 
-    def flush() -> None:
-        if parent is not None:
-            result.append(parent)
-            group.sort(key=lambda r: r.abs_total, reverse=True)
-            result.extend(group)
-
-    for row in rows:
-        if row.depth == min_depth:
-            flush()
-            parent = row
-            group = []
-        else:
-            group.append(row)
-    flush()
-    return result
+    return sorted(rows, key=sort_key)
 
 
 # ── Routes ──────────────────────────────────────────────────────────────
