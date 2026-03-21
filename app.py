@@ -124,9 +124,25 @@ def _sort_rows_by_amount(rows: list[hledger.BalanceRow]) -> list[hledger.Balance
     # Build lookup: account name → abs_total
     totals = {r.name: r.abs_total for r in rows}
 
+    # Fill in missing ancestor totals (hledger omits intermediate parents
+    # when they have a single child). Sum leaf descendants for each.
+    names = set(totals)
+    parents = {n for n in names if any(o.startswith(n + ":") for o in names)}
+    for leaf in names - parents:
+        parts = leaf.split(":")
+        for i in range(1, len(parts)):
+            ancestor = ":".join(parts[:i])
+            if ancestor not in totals:
+                totals[ancestor] = 0
+    for leaf in names - parents:
+        parts = leaf.split(":")
+        for i in range(1, len(parts)):
+            ancestor = ":".join(parts[:i])
+            if ancestor not in names:  # only fill synthetic ones
+                totals[ancestor] += totals[leaf]
+
     def sort_key(row: hledger.BalanceRow) -> tuple[int, ...]:
         parts = row.name.split(":")
-        # For each prefix depth, look up that ancestor's abs_total
         key: list[int] = []
         for i in range(1, len(parts) + 1):
             ancestor = ":".join(parts[:i])
