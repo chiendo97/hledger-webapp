@@ -306,48 +306,66 @@ def _normalize_amount(amount: str) -> str:
     return amount
 
 
-def _parse_compound_report(raw: _CompoundReportRaw) -> CompoundReport:
-    """Parse hledger compound balance report (is/bs)."""
+def _build_tree_rows(
+    flat_rows: list[tuple[str, list[Amount]]], depth: int
+) -> list[BalanceRow]:
+    """Build hierarchical tree rows from flat leaf rows.
+
+    Takes flat (name, amounts) pairs from hledger --flat output and creates
+    rows at every depth level up to `depth`, computing parent totals by
+    summing their children's amounts.
+    """
+    from collections import defaultdict
+
+    # Collect raw amounts at each prefix level
+    amounts_by_name: dict[str, list[Amount]] = defaultdict(list)
+    for name, amounts in flat_rows:
+        # Truncate to requested depth
+        parts = name.split(":")
+        if depth and len(parts) > depth:
+            name = ":".join(parts[:depth])
+        # Add amounts to this account and all ancestors
+        segments = name.split(":")
+        for i in range(1, len(segments) + 1):
+            prefix = ":".join(segments[:i])
+            amounts_by_name[prefix].extend(amounts)
+
+    # Build BalanceRow for each prefix
+    rows: list[BalanceRow] = []
+    for name, raw_amounts in sorted(amounts_by_name.items()):
+        merged = _merge_amounts(raw_amounts)
+        rows.append(
+            BalanceRow(
+                name=name,
+                depth=name.count(":"),
+                amounts=_fmt_amounts(merged) if merged else "",
+                amount_items=(
+                    [_fmt_amount(a) for a in merged] if merged else []
+                ),
+                abs_total=_abs_total(merged),
+            )
+        )
+    return rows
+
+
+def _parse_compound_report(
+    raw: _CompoundReportRaw, depth: int = 0
+) -> CompoundReport:
+    """Parse hledger compound balance report (is/bs).
+
+    Expects --flat output. Builds tree rows with parent totals computed
+    by summing children.
+    """
     subreports: list[SubReport] = []
     for sub_title, sub_table, _increase_is_normal in raw.cbrSubreports:
-        rows: list[BalanceRow] = []
+        flat_rows: list[tuple[str, list[Amount]]] = []
         for row in sub_table.prRows:
             amounts = row.prrAmounts[0] if row.prrAmounts else []
             if isinstance(row.prrName, list):
                 print(f"Warning: unexpected prrName list: {row.prrName}")
             name = row.prrName if isinstance(row.prrName, str) else ""
-            rows.append(
-                BalanceRow(
-                    name=name,
-                    depth=name.count(":"),
-                    amounts=_fmt_amounts(amounts) if amounts else "",
-                    amount_items=(
-                        [_fmt_amount(a) for a in _merge_amounts(amounts)]
-                        if amounts
-                        else []
-                    ),
-                    abs_total=_abs_total(amounts),
-                )
-            )
-        # Synthesize a depth-0 parent row when hledger collapses single-child parents
-        if rows and not any(r.depth == 0 for r in rows):
-            parent_name = rows[0].name.split(":")[0]
-            totals_row = sub_table.prTotals
-            parent_amounts = totals_row.prrAmounts[0] if totals_row.prrAmounts else []
-            rows.insert(
-                0,
-                BalanceRow(
-                    name=parent_name,
-                    depth=0,
-                    amounts=_fmt_amounts(parent_amounts) if parent_amounts else "",
-                    amount_items=(
-                        [_fmt_amount(a) for a in _merge_amounts(parent_amounts)]
-                        if parent_amounts
-                        else []
-                    ),
-                    abs_total=_abs_total(parent_amounts),
-                ),
-            )
+            flat_rows.append((name, amounts))
+        rows = _build_tree_rows(flat_rows, depth)
         totals = sub_table.prTotals
         total_amounts = totals.prrAmounts[0] if totals.prrAmounts else []
         subreports.append(
@@ -476,16 +494,14 @@ async def income_statement(
     begin: str = "",
     end: str = "",
 ) -> CompoundReport:
-    args = ["hledger", "-f", file, "is", "-O", "json", "--tree"]
-    if depth:
-        args += ["--depth", str(depth)]
+    args = ["hledger", "-f", file, "is", "-O", "json", "--flat"]
     if begin:
         args += ["-b", begin]
     if end:
         args += ["-e", end]
     raw_str = await _run(args)
     raw = _compound_adapter.validate_json(raw_str)
-    return _parse_compound_report(raw)
+    return _parse_compound_report(raw, depth)
 
 
 async def balance_sheet(
@@ -494,16 +510,14 @@ async def balance_sheet(
     begin: str = "",
     end: str = "",
 ) -> CompoundReport:
-    args = ["hledger", "-f", file, "bs", "-O", "json", "--tree"]
-    if depth:
-        args += ["--depth", str(depth)]
+    args = ["hledger", "-f", file, "bs", "-O", "json", "--flat"]
     if begin:
         args += ["-b", begin]
     if end:
         args += ["-e", end]
     raw_str = await _run(args)
     raw = _compound_adapter.validate_json(raw_str)
-    return _parse_compound_report(raw)
+    return _parse_compound_report(raw, depth)
 
 
 async def register(

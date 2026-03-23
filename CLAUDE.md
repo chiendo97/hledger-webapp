@@ -16,7 +16,7 @@ uv run --group build tailwindcss -i style.css -o static/dist.css
 uv run --group build tailwindcss -i style.css -o static/dist.css --watch
 
 # Run dev server (auto-reload on port 8000)
-uv run python app.py
+HLEDGER_FILE=/home/cle/Source/selfhost/syncthing/data/hledger/all.journal uv run python app.py
 
 # Run with Docker/Podman
 podman compose up --build -d
@@ -27,6 +27,13 @@ uv run basedpyright
 ```
 
 Requires `hledger` CLI on PATH and Python 3.12+. Journal file defaults to `../2025.journal`, override with `HLEDGER_FILE` env var. The journal can use hledger `include` directives to combine multiple files.
+
+**Playwright/browser testing**: The dev machine is NixOS (`nixos-cle`). Playwright MCP cannot reach `localhost` — use the Tailscale IP of nixos-cle instead (check with `tailscale ip -4`).
+
+**Deploy workflow**: Push to `master` → CI builds Docker image to `ghcr.io/chiendo97/hledger-webapp:latest` → pull and recreate on Unraid:
+```bash
+ssh root@unraid-cle "cd /mnt/user/selfhost && docker compose pull hledger-webapp && docker compose up -d hledger-webapp"
+```
 
 ## Architecture
 
