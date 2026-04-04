@@ -2,6 +2,7 @@
 
 import asyncio
 import time
+from datetime import date
 from pathlib import Path
 
 from pydantic import BaseModel, Field, TypeAdapter
@@ -140,6 +141,26 @@ class BudgetRow(BaseModel):
     budget: str
     percent: int = 0
     category: str = "expense"  # "income", "expense", "saving"
+
+
+class AvgRow(BaseModel):
+    name: str
+    avg_amount: str  # Formatted average per month
+    total: str  # Formatted year-to-date total
+    percent: int = 0  # Percentage of section total (for proportion bars)
+    avg_value: int = 0  # Raw average value (for sorting)
+
+
+class AvgMonthlyReport(BaseModel):
+    year: int
+    months_elapsed: int
+    revenue_rows: list[AvgRow] = Field(default_factory=list)
+    expense_rows: list[AvgRow] = Field(default_factory=list)
+    revenue_total: str = ""
+    expense_total: str = ""
+    expense_pct_of_income: int = 0  # Expenses as % of revenue
+    expense_trend: int = 0  # Change vs prior year in % (positive = spending more)
+    revenue_trend: int = 0  # Change vs prior year in % (positive = earning more)
 
 
 # ── Raw JSON models (internal parsing) ─────────────────────────────────
@@ -667,6 +688,119 @@ async def budget(
     cat_order = {"income": 0, "expense": 1, "saving": 2}
     rows.sort(key=lambda r: (cat_order.get(r.category, 9), -r.percent))
     return rows
+
+
+async def avg_monthly(file: str, year: int, depth: int = 2) -> AvgMonthlyReport:
+    """Return average monthly revenue/expense breakdown for *year*."""
+    today = date.today()
+    begin = f"{year}-01-01"
+    if year == today.year:
+        # End is first day of next month
+        if today.month == 12:
+            end = f"{year + 1}-01-01"
+        else:
+            end = f"{year}-{today.month + 1:02d}-01"
+        months_elapsed = today.month
+    else:
+        end = f"{year + 1}-01-01"
+        months_elapsed = 12
+
+    report = await income_statement(file, depth=depth, begin=begin, end=end)
+
+    def _build_rows(subreport: SubReport, months: int) -> tuple[list[AvgRow], str, int]:
+        """Return (rows, formatted_total, raw_avg_total)."""
+        names = {r.name for r in subreport.rows}
+        leaves = [r for r in subreport.rows if not any(
+            n.startswith(r.name + ":") for n in names
+        )]
+        avg_rows: list[AvgRow] = []
+        total_abs = 0
+        for r in leaves:
+            avg = r.abs_total // months
+            avg_rows.append(AvgRow(
+                name=r.name,
+                avg_amount=f"{avg:,} vnd",
+                total=f"{r.abs_total:,} vnd",
+                avg_value=avg,
+            ))
+            total_abs += r.abs_total
+        total_avg = total_abs // months if total_abs else 0
+        for row in avg_rows:
+            row.percent = round(row.avg_value * 100 / total_avg) if total_avg else 0
+        avg_rows.sort(key=lambda r: -r.avg_value)
+        return avg_rows, f"{total_avg:,} vnd", total_avg
+
+    # Fetch prior year for trend comparison (same month range for fairness)
+    prev_year = year - 1
+    prev_begin = f"{prev_year}-01-01"
+    if year == today.year:
+        # Compare same number of months in prior year
+        if today.month == 12:
+            prev_end = f"{prev_year + 1}-01-01"
+        else:
+            prev_end = f"{prev_year}-{today.month + 1:02d}-01"
+        prev_months = today.month
+    else:
+        prev_end = f"{prev_year + 1}-01-01"
+        prev_months = 12
+
+    report, prev_report = await asyncio.gather(
+        income_statement(file, depth=depth, begin=begin, end=end),
+        income_statement(file, depth=0, begin=prev_begin, end=prev_end),
+    )
+
+    # Extract prior year totals (depth=0, just need grand totals)
+    prev_expense_avg = 0
+    prev_revenue_avg = 0
+    for sub in prev_report.subreports:
+        if sub.title.lower().startswith("revenue"):
+            total_abs = sum(r.abs_total for r in sub.rows if not any(
+                n.startswith(r.name + ":") for n in {rr.name for rr in sub.rows}
+            ))
+            prev_revenue_avg = total_abs // prev_months if total_abs else 0
+        elif sub.title.lower().startswith("expense"):
+            total_abs = sum(r.abs_total for r in sub.rows if not any(
+                n.startswith(r.name + ":") for n in {rr.name for rr in sub.rows}
+            ))
+            prev_expense_avg = total_abs // prev_months if total_abs else 0
+
+    revenue_rows: list[AvgRow] = []
+    expense_rows: list[AvgRow] = []
+    revenue_total = ""
+    expense_total = ""
+    raw_expense_avg = 0
+    raw_revenue_avg = 0
+
+    for sub in report.subreports:
+        if sub.title.lower().startswith("revenue"):
+            revenue_rows, revenue_total, raw_revenue_avg = _build_rows(sub, months_elapsed)
+        elif sub.title.lower().startswith("expense"):
+            expense_rows, expense_total, raw_expense_avg = _build_rows(sub, months_elapsed)
+
+    # Expense as % of income
+    expense_pct = round(raw_expense_avg * 100 / raw_revenue_avg) if raw_revenue_avg else 0
+
+    # Trend vs prior year (positive = increase)
+    expense_trend = (
+        round((raw_expense_avg - prev_expense_avg) * 100 / prev_expense_avg)
+        if prev_expense_avg else 0
+    )
+    revenue_trend = (
+        round((raw_revenue_avg - prev_revenue_avg) * 100 / prev_revenue_avg)
+        if prev_revenue_avg else 0
+    )
+
+    return AvgMonthlyReport(
+        year=year,
+        months_elapsed=months_elapsed,
+        revenue_rows=revenue_rows,
+        expense_rows=expense_rows,
+        revenue_total=revenue_total,
+        expense_total=expense_total,
+        expense_pct_of_income=expense_pct,
+        expense_trend=expense_trend,
+        revenue_trend=revenue_trend,
+    )
 
 
 async def sources(file: str) -> list[str]:

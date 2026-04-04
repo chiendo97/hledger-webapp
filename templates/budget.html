@@ -4,11 +4,43 @@
 {% block header %}Budget{% endblock %}
 
 {% block content %}
-{% set _p = {'month': month} %}
+{# ── View toggle ── #}
+<div class="flex items-center justify-center gap-1 mb-3">
+  <a href="/budget?month={{ month }}&view=budget"
+     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {% if view != 'avg' %}bg-surface-button text-text-heading{% else %}text-text-muted hover:text-text{% endif %}">Budget</a>
+  <a href="/budget?month={{ month }}&view=avg&year={{ year }}&depth={{ depth }}"
+     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors {% if view == 'avg' %}bg-surface-button text-text-heading{% else %}text-text-muted hover:text-text{% endif %}">Averages</a>
+</div>
+
+{% if view == 'avg' %}
+{# ── Year picker ── #}
+<div class="flex items-center justify-center gap-2 mb-3">
+  <a href="/budget?view=avg&year={{ year - 1 }}&month={{ month }}&depth={{ depth }}" aria-label="Previous year"
+     class="w-9 h-9 flex items-center justify-center rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text">&larr;</a>
+  <span class="text-text-heading font-medium text-sm min-w-[4rem] text-center">{{ year }}</span>
+  {% if year < current_year %}
+  <a href="/budget?view=avg&year={{ year + 1 }}&month={{ month }}&depth={{ depth }}" aria-label="Next year"
+     class="w-9 h-9 flex items-center justify-center rounded bg-surface-inset text-text-muted hover:bg-surface-button text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text">&rarr;</a>
+  {% else %}
+  <span class="w-9 h-9 flex items-center justify-center rounded bg-surface-inset text-text-faint/30 text-sm cursor-not-allowed">&rarr;</span>
+  {% endif %}
+</div>
+{# ── Depth selector ── #}
+{% set _p = {'view': 'avg', 'year': year, 'month': month, 'depth': depth} %}
+{% include "partials/depth_selector.html" %}
+<div id="page-content"
+     hx-get="/budget/avg/partial?year={{ year }}&depth={{ depth }}"
+     hx-trigger="load, refresh from:window">
+  {% include "partials/skeleton.html" %}
+</div>
+{% else %}
+{# ── Month picker (existing) ── #}
+{% set _p = {'month': month, 'view': 'budget'} %}
 {% include "partials/month_picker.html" %}
 <div id="page-content"
      hx-get="/budget/partial?month={{ month }}"
      hx-trigger="load, refresh from:window">
   {% include "partials/skeleton.html" %}
 </div>
+{% endif %}
 {% endblock %}

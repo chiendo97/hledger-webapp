@@ -1,0 +1,66 @@
+{# ── Hero: key totals ── #}
+{% if report.expense_rows or report.revenue_rows %}
+<div class="border border-border rounded-lg mb-6 overflow-hidden">
+  <div class="px-4 py-3 flex justify-around text-center">
+    {% if report.expense_rows %}
+    <div>
+      <div class="label mb-1">Expenses</div>
+      <div class="text-xl font-bold text-negative">{{ report.expense_total }}</div>
+      {% if report.expense_trend != 0 %}
+      <div class="text-xs mt-0.5 {% if report.expense_trend > 0 %}text-negative{% else %}text-positive{% endif %}">
+        {{ '+' if report.expense_trend > 0 else '' }}{{ report.expense_trend }}% vs {{ report.year - 1 }}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if report.expense_rows and report.revenue_rows %}
+    <div class="border-l border-border"></div>
+    {% endif %}
+    {% if report.revenue_rows %}
+    <div>
+      <div class="label mb-1">Revenue</div>
+      <div class="text-xl font-bold text-positive">{{ report.revenue_total }}</div>
+      {% if report.revenue_trend != 0 %}
+      <div class="text-xs mt-0.5 {% if report.revenue_trend > 0 %}text-positive{% else %}text-negative{% endif %}">
+        {{ '+' if report.revenue_trend > 0 else '' }}{{ report.revenue_trend }}% vs {{ report.year - 1 }}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="border-t border-border px-4 py-1.5 text-center">
+    <span class="text-xs text-text-faint">avg / month &middot; {{ report.months_elapsed }} month{{ 's' if report.months_elapsed != 1 else '' }}{% if report.expense_pct_of_income %} &middot; {{ report.expense_pct_of_income }}% of income{% endif %}</span>
+  </div>
+</div>
+{% endif %}
+
+{% macro avg_section(title, items, color_class, bar_class) %}
+{% if items %}
+<div class="mb-5">
+  <div class="flex items-center gap-2 mb-2">
+    <h2 class="label font-bold">{{ title }}</h2>
+    <div class="flex-1 border-t border-border"></div>
+  </div>
+  <div class="space-y-1.5">
+    {% for row in items %}
+    <a href="/register?account={{ row.name | urlencode }}&begin={{ report.year }}-01-01&end={{ report.year + 1 }}-01-01" class="block bg-surface-raised border border-border rounded-lg p-3 hover:border-border-hover transition-colors duration-150">
+      <div class="flex justify-between items-baseline mb-1.5">
+        <span class="text-sm text-text-heading truncate mr-2">{{ row.name }}</span>
+        <span class="text-sm font-bold whitespace-nowrap {{ color_class }}">{{ row.avg_amount }}</span>
+      </div>
+      <div class="w-full bg-surface-inset rounded-full h-1.5">
+        <div class="h-1.5 rounded-full {{ bar_class }}" style="width: {{ [row.percent, 100] | min }}%"></div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ avg_section("Expenses", report.expense_rows, "text-negative", "bg-negative/40") }}
+{{ avg_section("Revenue", report.revenue_rows, "text-positive", "bg-positive/40") }}
+
+{% if not report.expense_rows and not report.revenue_rows %}
+<p class="empty-state">No transactions found for {{ report.year }}.</p>
+{% endif %}

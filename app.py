@@ -278,9 +278,12 @@ async def balancesheet_partial(
 
 
 @get("/budget")
-async def budget_view(month: str = "") -> Template:
+async def budget_view(month: str = "", view: str = "budget", year: int = 0, depth: int = 2) -> Template:
     mr = _month_range(month)
-    return Template("budget.html", context={**mr})
+    today = datetime.datetime.now(tz=datetime.UTC).date()
+    if year == 0:
+        year = today.year
+    return Template("budget.html", context={"view": view, "year": year, "depth": depth, "current_year": today.year, **mr})
 
 
 @get("/budget/partial")
@@ -288,6 +291,14 @@ async def budget_partial(month: str = "") -> Template:
     mr = _month_range(month)
     rows = await hledger.budget(JOURNAL_FILE, begin=mr["begin"], end=mr["end"])
     return Template("partials/budget_content.html", context={"rows": rows, "month": month})
+
+
+@get("/budget/avg/partial")
+async def budget_avg_partial(year: int = 0, depth: int = 2) -> Template:
+    if year == 0:
+        year = datetime.datetime.now(tz=datetime.UTC).date().year
+    report = await hledger.avg_monthly(JOURNAL_FILE, year, depth=depth)
+    return Template("partials/avg_content.html", context={"report": report, "year": year})
 
 
 @get("/register")
@@ -323,6 +334,7 @@ app = Litestar(
         balancesheet_partial,
         budget_view,
         budget_partial,
+        budget_avg_partial,
         register_view,
         register_partial,
         create_static_files_router(path="/static", directories=[STATIC_DIR]),
